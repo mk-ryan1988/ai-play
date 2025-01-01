@@ -1,0 +1,29 @@
+.gantt-chart {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border: 1px solid theme('colors.light.tertiary');
+  background: theme('colors.light.secondary');
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.gantt-bar {
+  position: absolute;
+  height: 40px;
+  background: #4caf50;
+  color: white;
+  text-align: center;
+  line-height: 40px;
+  border-radius: 5px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  padding: 0 5px;
+  box-sizing: border-box;
+}
+
+.gantt-bar-label {
+  display: inline-block;
+  vertical-align: middle;
+}

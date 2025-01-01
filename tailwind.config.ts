@@ -1,4 +1,5 @@
-import type { Config } from "tailwindcss";
+import type { Config } from 'tailwindcss'
+import colors from 'tailwindcss/colors'
 
 const config: Config = {
   content: [
@@ -8,12 +9,28 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Montserrat', 'sans-serif'],
+      },
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
+        dark: {
+          primary: colors.neutral[950],
+          secondary: colors.neutral[900],
+          tertiary: colors.neutral[800],
+        },
+        light: {
+          primary: colors.white,
+          secondary: colors.neutral[50],
+          tertiary: colors.neutral[100],
+        },
+        text: {
+          dark: colors.white,
+          light: colors.black,
+        }
       },
     },
   },
   plugins: [],
-};
-export default config;
+}
+
+export default config
