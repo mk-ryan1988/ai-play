@@ -4,14 +4,17 @@ import "./globals.css";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from 'next/navigation';
+import { useWindowWidth } from '../hooks/useWindowWidth';
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
+  const { isMobile } = useWindowWidth();
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
 
   const menuItems = [
     { name: 'Home', path: '/', icon: '📝' },
@@ -83,7 +86,7 @@ export default function RootLayout({
           <main className={`
             flex-1 transition-all duration-300 my-4 mr-4
             bg-dark-secondary border border-dark-tertiary rounded-lg p-4
-            ${!isCollapsed && window?.innerWidth < 768 ? 'blur-sm' : ''}
+            ${isCollapsed && isMobile ? 'blur-sm' : ''}
           `}>
             {children}
           </main>
