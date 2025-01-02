@@ -1,5 +1,4 @@
 import type { Config } from 'tailwindcss'
-import colors from 'tailwindcss/colors'
 
 const config: Config = {
   content: [
@@ -13,20 +12,13 @@ const config: Config = {
         sans: ['Montserrat', 'sans-serif'],
       },
       colors: {
-        dark: {
-          primary: colors.neutral[950],
-          secondary: colors.neutral[900],
-          tertiary: colors.neutral[800],
-        },
-        light: {
-          primary: colors.white,
-          secondary: colors.neutral[50],
-          tertiary: colors.neutral[100],
-        },
-        text: {
-          dark: colors.white,
-          light: colors.black,
-        }
+        primary: 'var(--color-primary)',
+        secondary: 'var(--color-secondary)',
+        tertiary: 'var(--color-tertiary)',
+        title: 'var(--text-title)',
+        subtitle: 'var(--text-subtitle)',
+        body: 'var(--text-body)',
+        label: 'var(--text-label)',
       },
     },
   },

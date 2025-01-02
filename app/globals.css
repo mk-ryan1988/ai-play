@@ -3,21 +3,36 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: theme('colors.light.primary');
-  --foreground: theme('colors.text.light');
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: theme('colors.dark.primary');
-    --foreground: theme('colors.text.dark');
-  }
-}
+    /* Light Mode - darker colors for background layers */
+    --color-primary: theme('colors.neutral.100');
+    --color-secondary: theme('colors.neutral.50');
+    --color-tertiary: theme('colors.white');
 
-body {
-  color: var(--foreground);
-  background: var(--background);
+    --text-title: theme('colors.neutral.900');
+    --text-subtitle: theme('colors.neutral.700');
+    --text-body: theme('colors.neutral.600');
+    --text-label: theme('colors.neutral.500');
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      /* Dark Mode - lighter colors for foreground layers */
+      --color-primary: theme('colors.neutral.950');
+      --color-secondary: theme('colors.neutral.900');
+      --color-tertiary: theme('colors.neutral.800');
+
+      --text-title: theme('colors.white');
+      --text-subtitle: theme('colors.neutral.200');
+      --text-body: theme('colors.neutral.300');
+      --text-label: theme('colors.neutral.400');
+    }
+  }
+
+  body {
+    @apply bg-primary text-body;
+  }
 }
 
 @layer utilities {
@@ -38,7 +53,7 @@ body {
 
 .ProseMirror {
   min-height: 100px;
-  color: theme('colors.text.dark');
+  color: theme('colors.title');
   padding: 1rem;
 }
 
@@ -85,7 +100,7 @@ body {
 
 /* Blockquote Styles */
 .ProseMirror blockquote {
-  border-left: 3px solid theme('colors.dark.tertiary');
+  border-left: 3px solid theme('colors.tertiary');
   padding-left: 1em;
   margin-left: 0;
   font-style: italic;
@@ -94,7 +109,7 @@ body {
 /* Horizontal Rule */
 .ProseMirror hr {
   border: none;
-  border-top: 2px solid theme('colors.dark.tertiary');
+  border-top: 2px solid theme('colors.tertiary');
   margin: 2em 0;
 }
 
