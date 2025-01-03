@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, KeyboardEvent } from 'react';
+import { XMarkIcon } from '@heroicons/react/24/solid';
 import TextEditor from './TextEditor';
-
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -55,8 +55,8 @@ export default function Dialog({ isOpen, onClose, type }: DialogProps) {
       onClick={handleBackdropClick}
       onClose={onClose}
       className={`
-        fixed rounded-lg bg-dark-secondary backdrop:bg-black/10
-        p-8 overflow-hidden border border-dark-tertiary
+        fixed rounded-lg bg-secondary backdrop:bg-black/10
+        p-8 overflow-hidden border border-tertiary
         transition-all duration-300 origin-bottom-right
         animate-[slide-in-from-bottom-right_0.3s_ease-out]
         [&[closing]]:animate-[slide-out-to-bottom-right_0.3s_ease-in]
@@ -65,26 +65,12 @@ export default function Dialog({ isOpen, onClose, type }: DialogProps) {
       <div className="w-full h-full flex flex-col relative">
         <button
           onClick={onClose}
-          className="absolute top-0 right-0 p-2 hover:bg-dark-tertiary rounded-lg transition-colors"
+          className="absolute top-0 right-0 p-2 hover:bg-tertiary rounded-lg transition-colors"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="text-gray-400 hover:text-text-dark"
-          >
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
-          </svg>
+          <XMarkIcon className="w-6 h-6 text-label hover:text-title" />
         </button>
 
-        <h2 className="text-2xl font-semibold text-text-dark capitalize mb-4 pr-12">
+        <h2 className="text-2xl font-semibold text-title capitalize mb-4 pr-12">
           {type.replace(/-/g, ' ')}
         </h2>
 
