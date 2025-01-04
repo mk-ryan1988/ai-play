@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import LogoutButton from './LogoutButton'
+import LogoutButton from '../LogoutButton'
 
 export default function Sidenav() {
   const pathname = usePathname()

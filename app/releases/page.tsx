@@ -1,6 +1,6 @@
 'use client';
 
-import GanttChart from "../components/gannt-chart";
+import GanttChart from "@/components/GanntChart";
 
 export default function ReleasesPage() {
   return (

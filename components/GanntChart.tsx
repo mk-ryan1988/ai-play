@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import dayjs from 'dayjs';
-import '../global.css';
+import '@/app/global.css';
 
 interface Release {
   id: string;
