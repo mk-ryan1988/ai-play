@@ -23,7 +23,7 @@ CREATE TABLE org_statuses (
 -- Users (extending Supabase auth)
 CREATE TABLE user_profiles (
   id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
-  full_name text,
+  display_name text,
   avatar_url text,
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
