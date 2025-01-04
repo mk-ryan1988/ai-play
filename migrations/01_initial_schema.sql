@@ -3,7 +3,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Organizations and their custom statuses
 CREATE TABLE organizations (
-  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   name text NOT NULL,
   slug text UNIQUE NOT NULL,
   created_at timestamptz DEFAULT now() NOT NULL,
@@ -11,8 +11,8 @@ CREATE TABLE organizations (
 );
 
 CREATE TABLE org_statuses (
-  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-  org_id bigint REFERENCES organizations(id) ON DELETE CASCADE,
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
   color text NOT NULL DEFAULT '#666666',
   order_index integer NOT NULL,
@@ -41,8 +41,8 @@ CREATE TABLE org_members (
 
 -- Projects and Versions with flexible status
 CREATE TABLE projects (
-  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-  org_id bigint REFERENCES organizations(id) ON DELETE CASCADE,
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
   name text NOT NULL,
   description text,
   repository_url text,
@@ -51,8 +51,8 @@ CREATE TABLE projects (
 );
 
 CREATE TABLE versions (
-  id bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-  project_id bigint REFERENCES projects(id) ON DELETE CASCADE,
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  project_id uuid REFERENCES projects(id) ON DELETE CASCADE,
   name text NOT NULL,
   status text NOT NULL, -- Free-form status that matches org_statuses
   version_number text NOT NULL,
