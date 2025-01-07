@@ -14,6 +14,7 @@ export default function LoginPage() {
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession()
+        console.log('Initial session check:', session) // Debug log
 
         if (error) {
           console.error('Error checking session:', error.message)
@@ -21,28 +22,33 @@ export default function LoginPage() {
         }
 
         if (session) {
+          console.log('Valid session found, redirecting...') // Debug log
           router.replace('/')
-          router.refresh() // Refresh to ensure all routes update with new session
+          router.refresh()
         }
       } catch (err) {
         console.error('Session check failed:', err)
       }
     }
 
-    // Initial check
     checkSession()
 
     // Set up auth state listener
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session) // Debug log
+
       if (session) {
+        // Verify the session is properly set
+        const verifySession = await supabase.auth.getSession()
+        console.log('Verified session:', verifySession) // Debug log
+
         router.replace('/')
         router.refresh()
       }
     })
 
-    // Cleanup subscription
     return () => subscription.unsubscribe()
   }, [router, supabase])
 
