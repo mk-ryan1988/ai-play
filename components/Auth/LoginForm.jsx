@@ -1,10 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from '@/lib/supabase/auth'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
+
 export default function LoginForm() {
   const router = useRouter()
+  const supabase = createClientComponentClient()
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
   const [password, setPassword] = useState('')
@@ -13,15 +15,18 @@ export default function LoginForm() {
     e.preventDefault()
     setError(null)
 
-    const { data, error } = await signIn({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
 
     if (error) {
       setError(error.message)
       return
     }
 
-    // Redirect or update UI on successful login
     router.replace('/')
+    router.refresh()
   }
 
   return (
