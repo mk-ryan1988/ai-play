@@ -1,15 +1,36 @@
 'use client'
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import LogoutButton from '../LogoutButton'
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { HomeIcon, RocketLaunchIcon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
+import Card from '../Card';
 
 export default function Sidenav({ isCollapsed, setIsCollapsed }) {
-  const pathname = usePathname()
+  const router = useRouter();
+  const pathname = usePathname();
+  const [organisation, setOrganisation] = useState(null);
+
+  const fetchOrganisation = async () => {
+    try {
+      // fetch the organisation from the api route
+      const response = await fetch('/api/organisation');
+      const data = await response.json();
+      setOrganisation(data.organisation);
+    } catch (err) {
+      console.error('Error in fetchOrganisation:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrganisation();
+  }, []);
 
   const handleLogout = async () => {
-    const { error } = await signOut();
+    const {
+      error
+    } = await supabase.auth.signOut();
+
     if (!error) {
       router.refresh();
       router.push('/login');
@@ -49,6 +70,12 @@ export default function Sidenav({ isCollapsed, setIsCollapsed }) {
 
       {/* Menu content */}
       <nav className="mt-8 h-full flex flex-col">
+
+        {organisation && (
+          <Card className="mb-4 p-2">
+            <h1>{organisation.name}</h1>
+          </Card>
+        )}
 
         <div className="flex-1">
           <div className="space-y-4 text-gray-300">
