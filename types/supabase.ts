@@ -117,7 +117,7 @@ export type Database = {
           id: string
           name: string
           org_id: string | null
-          repository_url: string | null
+          repositories: string[] | null
           updated_at: string
         }
         Insert: {
@@ -126,7 +126,7 @@ export type Database = {
           id?: string
           name: string
           org_id?: string | null
-          repository_url?: string | null
+          repositories?: string[] | null
           updated_at?: string
         }
         Update: {
@@ -135,7 +135,7 @@ export type Database = {
           id?: string
           name?: string
           org_id?: string | null
-          repository_url?: string | null
+          repositories?: string[] | null
           updated_at?: string
         }
         Relationships: [
