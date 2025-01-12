@@ -42,24 +42,27 @@ CREATE TABLE org_members (
 -- Projects and Versions with flexible status
 CREATE TABLE projects (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
   name text NOT NULL,
   description text,
-  repository_url text,
+  repositories text[],
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
 );
 
 CREATE TABLE versions (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  project_id uuid REFERENCES projects(id) ON DELETE CASCADE,
+  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+  project_id uuid REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
   name text NOT NULL,
   status text NOT NULL, -- Free-form status that matches org_statuses
-  version_number text NOT NULL,
+  version_number text,
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL,
-  tested_at timestamptz,
-  deployed_at timestamptz,
+  prepared_at timestamptz,
+  release_at timestamptz,
+  released_at timestamptz,
+  UNIQUE(project_id, name),
   UNIQUE(project_id, version_number)
 );
 

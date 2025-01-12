@@ -226,38 +226,54 @@ export type Database = {
       versions: {
         Row: {
           created_at: string
-          deployed_at: string | null
+          description: string | null
           id: string
           name: string
+          org_id: string | null
+          prepared_at: string | null
           project_id: string | null
+          release_at: string | null
+          released_at: string | null
           status: string
-          tested_at: string | null
           updated_at: string
-          version_number: string
+          version_number: string | null
         }
         Insert: {
           created_at?: string
-          deployed_at?: string | null
+          description?: string | null
           id?: string
           name: string
+          org_id?: string | null
+          prepared_at?: string | null
           project_id?: string | null
+          release_at?: string | null
+          released_at?: string | null
           status: string
-          tested_at?: string | null
           updated_at?: string
-          version_number: string
+          version_number?: string | null
         }
         Update: {
           created_at?: string
-          deployed_at?: string | null
+          description?: string | null
           id?: string
           name?: string
+          org_id?: string | null
+          prepared_at?: string | null
           project_id?: string | null
+          release_at?: string | null
+          released_at?: string | null
           status?: string
-          tested_at?: string | null
           updated_at?: string
-          version_number?: string
+          version_number?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "versions_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organisations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "versions_project_id_fkey"
             columns: ["project_id"]

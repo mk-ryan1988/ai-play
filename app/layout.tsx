@@ -6,6 +6,7 @@ import { guestRoutes } from './routes'
 import { usePathname } from 'next/navigation';
 import { useWindowWidth } from '../hooks/useWindowWidth';
 import Sidenav from '@/components/Navigation/Sidenav';
+import { OrganizationProvider } from '@/contexts/OrganizationContext';
 
 export default function RootLayout({
   children,
@@ -21,23 +22,25 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
-          {/* Side Menu */}
-          {!isGuestRoute && <Sidenav
-            isCollapsed={isCollapsed}
-            setIsCollapsed={setIsCollapsed}
-          />}
+        <OrganizationProvider>
+          <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
+            {/* Side Menu */}
+            {!isGuestRoute && <Sidenav
+              isCollapsed={isCollapsed}
+              setIsCollapsed={setIsCollapsed}
+            />}
 
-          {/* Main Content */}
-          <main className={`
-            flex-1 transition-all duration-300 my-4 mr-4
-            bg-secondary border border-tertiary rounded-lg p-4
-            ${isCollapsed && isMobile ? 'blur-sm' : ''}
-            ${isGuestRoute ? 'ml-4' : ''}
-          `}>
-            {children}
-          </main>
-        </div>
+            {/* Main Content */}
+            <main className={`
+              flex-1 transition-all duration-300 my-4 mr-4
+              bg-secondary border border-tertiary rounded-lg p-4
+              ${isCollapsed && isMobile ? 'blur-sm' : ''}
+              ${isGuestRoute ? 'ml-4' : ''}
+            `}>
+              {children}
+            </main>
+          </div>
+        </OrganizationProvider>
       </body>
     </html>
   );
