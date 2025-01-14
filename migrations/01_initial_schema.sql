@@ -55,6 +55,7 @@ CREATE TABLE versions (
   org_id uuid REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
   project_id uuid REFERENCES projects(id) ON DELETE CASCADE NOT NULL,
   name text NOT NULL,
+  slug text NOT NULL,
   status text NOT NULL, -- Free-form status that matches org_statuses
   version_number text,
   created_at timestamptz DEFAULT now() NOT NULL,
@@ -63,7 +64,8 @@ CREATE TABLE versions (
   release_at timestamptz,
   released_at timestamptz,
   UNIQUE(project_id, name),
-  UNIQUE(project_id, version_number)
+  UNIQUE(project_id, version_number),
+  UNIQUE(slug)
 );
 
 -- Version Issues

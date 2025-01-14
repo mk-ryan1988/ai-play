@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { generateSlug } from '@/utils/slugify';
 
 export async function POST(request: Request) {
   try {
     const supabase = createClient();
     const data = await request.json();
+    const slug = generateSlug(data.project_name, data.name);
 
     // Get the first status of the org ordered by order_index
     const { data: status, error: statusError } = await supabase
@@ -20,15 +22,16 @@ export async function POST(request: Request) {
     const { error } = await supabase
       .from('versions')
       .insert({
-        org_id: data.org_id,
-        project_id: data.project_id,
-        name: data.name,
+        ...data,
+        slug,
         status: status.name,
         version_number: data.version ?? null,
         description: data.description ?? null,
         prepared_at: data.release_date ?? null,
         released_at: data.release_date ?? null,
-      });
+      })
+      .select()
+      .single();
 
     if (error) throw error;
 

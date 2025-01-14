@@ -234,6 +234,7 @@ export type Database = {
           project_id: string | null
           release_at: string | null
           released_at: string | null
+          slug: string
           status: string
           updated_at: string
           version_number: string | null
@@ -248,6 +249,7 @@ export type Database = {
           project_id?: string | null
           release_at?: string | null
           released_at?: string | null
+          slug?: string | null
           status: string
           updated_at?: string
           version_number?: string | null
@@ -262,6 +264,7 @@ export type Database = {
           project_id?: string | null
           release_at?: string | null
           released_at?: string | null
+          slug?: string | null
           status?: string
           updated_at?: string
           version_number?: string | null

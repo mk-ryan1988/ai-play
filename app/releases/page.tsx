@@ -9,6 +9,8 @@ import { useOrganization } from "@/contexts/OrganizationContext";
 import { Database } from "@/types/supabase";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import Card from "@/components/Card";
+import Link from "next/link";
+import { generateSlug } from "@/utils/slugify";
 
 type Release = Database['public']['Tables']['versions']['Row'] & {
   projects: {
@@ -35,6 +37,15 @@ export default function ReleasesPage() {
     };
     fetchReleases();
   }, [organization]);
+
+  useEffect(() => {
+    const mapped = releases.map((release) => {
+      return {
+        slug: generateSlug(release.projects.name, release.name),
+      };
+    });
+    console.log(JSON.stringify(mapped, null, 2));
+  }, [releases]);
 
   return (
     <PageWrapper
@@ -65,8 +76,9 @@ export default function ReleasesPage() {
 
         <div className="space-y-px divide-y divide-tertiary">
           {releases.map((release) => (
-            <div
+            <Link
               key={release.id}
+              href={`/releases/${release.slug}`}
               className="flex items-center justify-between py-4 hover:bg-background/50 transition-colors"
             >
               <div className="space-y-1">
@@ -91,7 +103,7 @@ export default function ReleasesPage() {
                 </span>
                 <ChevronRightIcon className="w-5 h-5 text-gray-500" />
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

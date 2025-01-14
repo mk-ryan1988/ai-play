@@ -29,9 +29,11 @@ export default function PageWrapper(
             </Link>
           )}
 
-          <div>
-            <h1 className="text-2xl font-thin mb-2">{title || ''}</h1>
-            <p className="text-sm min-h-6">{description || ''}</p>
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-thin">{title || ''}</h1>
+            { description &&
+              <p className="text-sm min-h-6 mt-2">{description}</p>
+            }
           </div>
         </div>
 
