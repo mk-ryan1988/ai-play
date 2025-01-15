@@ -1,31 +1,59 @@
-import { ChevronRightIcon } from '@heroicons/react/24/outline';
+import Badge from '../ui/Badge';
+import { useEffect, useState } from 'react';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
 
-export default function ReleaseIssuesList({ releaseId }: { releaseId: string }) {
-  const mockIssues = [
-    {
-      id: '1',
-      title: 'Issue 1',
-      description: 'Description 1',
-      status: 'ready_to_test',
-    },
-    {
-      id: '2',
-      title: 'Issue 2',
-      description: 'Description 2',
-      status: 'in_progress',
-    },
-    {
-      id: '3',
-      title: 'Issue 3',
-      description: 'Description 3',
-      status: 'ready_to_test',
-    },
+type Issue = {
+  id: string;
+  key: string;
+  fields: {
+    summary: string;
+    description: string;
+    status: {
+      name: string;
+      statusCategory: {
+        colorName: 'blue-gray' | 'yellow' | 'green' | 'default';
+        self: string;
+      };
+    };
+  }
+};
 
-  ];
+const getIssueLink = (issueKey: string) => `${process.env.NEXT_PUBLIC_JIRA_URL}/browse/${issueKey}`;
+
+export default function ReleaseIssuesList({ releaseSlug }: { releaseSlug: string }) {
+  const [issues, setIssues] = useState<Issue[]>([]);
+
+  useEffect(() => {
+    if (!releaseSlug) {
+      return;
+    }
+
+    const fetchIssues = async () => {
+      try {
+        const response = await fetch(`/api/jira?fixVersion=${releaseSlug}`);
+        const data = await response.json();
+        console.log('Issues:', data);
+
+        if (data.errorMessages) {
+          console.error('Error fetching issues:', data.errorMessages[0]);
+          return;
+        }
+
+        if (data.issues.length > 0) {
+          setIssues(data.issues);
+          return;
+        }
+      } catch (error) {
+        console.error('Error fetching issues:', error);
+      }
+    }
+
+    fetchIssues();
+  }, [releaseSlug]);
 
   return (
     <div className="space-y-px divide-y divide-tertiary">
-      {mockIssues.map((issue) => (
+      {issues.map((issue) => (
             <div
             key={issue.id}
             className="flex items-center justify-between py-4 hover:bg-background/50 transition-colors"
@@ -33,24 +61,18 @@ export default function ReleaseIssuesList({ releaseId }: { releaseId: string }) 
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="font-medium">
-                  {`${issue.title}`}
+                  {`${issue.key} - ${issue.fields.summary}`}
                 </span>
-              </div>
-
-              <div className="text-sm text-gray-400">
-                <p className="line-clamp-2 pr-4">{ issue.description }</p>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <span className={`px-3 py-1 rounded-full text-sm ${
-                issue.status === 'ready_to_test'
-                  ? 'bg-purple-500/10 text-purple-400'
-                  : 'bg-gray-700/50 text-gray-300'
-              }`}>
-                {issue.status}
-              </span>
-              <ChevronRightIcon className="w-5 h-5 text-gray-500" />
+              <Badge color={issue.fields.status.statusCategory.colorName}>
+                {issue.fields.status.name}
+              </Badge>
+              <a href={getIssueLink(issue.key)} target="_blank" rel="noreferrer" className='text-label hover:text-title'>
+                <ArrowTopRightOnSquareIcon className="w-5 h-5 cursor-pointer" />
+              </a>
             </div>
           </div>
       ))}

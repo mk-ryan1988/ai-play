@@ -3,16 +3,16 @@ export default function ReleasesStats() {
 
   const Stats: { title: string; stats: string }[] = [
     {
-      title: 'Number of Commits',
-      stats: '20',
-    },
-    {
       title: 'Number of Issues',
       stats: '15',
     },
     {
       title: 'Number of Issues Tested',
       stats: '10',
+    },
+    {
+      title: 'Number of Push Backs',
+      stats: '3',
     },
     {
       title: 'Pass Percentage',

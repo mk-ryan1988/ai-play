@@ -6,7 +6,6 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
 import ReleaseCheckList from '@/components/releases/ReleasesCheckList';
-import Card from '@/components/Card';
 
 interface Release {
   id: string;
@@ -90,11 +89,12 @@ export default function ReleasePage() {
                 <span className="text-title font-semibold">{release.status}</span>
               </div>
             </div>
+
             <ReleasesStats />
 
             <div className="mt-4 p-4">
               <h2 className="text-title font-semibold mb-4">Issues</h2>
-              <ReleaseIssuesList releaseId={release.id} />
+              <ReleaseIssuesList releaseSlug={release.slug} />
             </div>
           </>
         )}
