@@ -538,6 +538,16 @@
   resolved "https://registry.yarnpkg.com/@tiptap/extension-strike/-/extension-strike-2.11.2.tgz#9b5b698da5a024219e2ecf438c3b503d9b812fbe"
   integrity sha512-n/rznmhqFlENGSlFY9t3pWnWzSmvDpUj3sjVhdpYteis+OCzabN9+c5KdQTBPMjtwRuRleQiKWnHmxvif0heEg==
 
+"@tiptap/extension-task-item@^2.11.3":
+  version "2.11.3"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-task-item/-/extension-task-item-2.11.3.tgz#b156fb88babb797cc08aa2bd2f2fa39baf1a9c51"
+  integrity sha512-mTjWs2L2AD+9/as55O900cpAJgTWiflU2hIcA3hPBIxITS4oxCxO2yC8FMd0bx/wTGLij1CFSuM3QEdSgJSCVQ==
+
+"@tiptap/extension-task-list@^2.11.3":
+  version "2.11.3"
+  resolved "https://registry.yarnpkg.com/@tiptap/extension-task-list/-/extension-task-list-2.11.3.tgz#6bbe48cd059a6f7cd91e0a43704b7abfbd5c1dbe"
+  integrity sha512-E9zz5IeCsku3m++nLQN3qo3HGWS+sM1+/n4Htdk8C5UgRODDpOuCK6NFVX7nC3xy3ISUI48p7R0V7v7foURaNw==
+
 "@tiptap/extension-text-style@^2.11.2":
   version "2.11.2"
   resolved "https://registry.yarnpkg.com/@tiptap/extension-text-style/-/extension-text-style-2.11.2.tgz#5a7f068c251b39b07893110cbc546004944f880c"
@@ -609,6 +619,11 @@
     "@tiptap/extension-text" "^2.11.2"
     "@tiptap/extension-text-style" "^2.11.2"
     "@tiptap/pm" "^2.11.2"
+
+"@tiptap/suggestion@^2.11.3":
+  version "2.11.3"
+  resolved "https://registry.yarnpkg.com/@tiptap/suggestion/-/suggestion-2.11.3.tgz#ac22180cabf678905fa53294bcd362cede20b289"
+  integrity sha512-w3zTPAYGbUxrgA1kUjhCZ4H6Js5RhbAjHqvNV9zJzREC8A/aiAYfQXCwhA5pYwRNedmQx6l4AVwtHxiCHfwtwA==
 
 "@types/cookie@^0.6.0":
   version "0.6.0"

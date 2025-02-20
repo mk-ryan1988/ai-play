@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, KeyboardEvent } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/solid';
-import TextEditor from './TextEditor';
+import TextEditor from './editor/TextEditor';
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;

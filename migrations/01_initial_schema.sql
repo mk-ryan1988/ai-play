@@ -1,6 +1,15 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
+-- Users (extending Supabase auth)
+CREATE TABLE user_profiles (
+  id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
+  display_name text,
+  avatar_url text,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  updated_at timestamptz DEFAULT now() NOT NULL
+);
+
 -- Organizations and their custom statuses
 CREATE TABLE organizations (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -20,15 +29,6 @@ CREATE TABLE org_statuses (
   UNIQUE(org_id, name)
 );
 
--- Users (extending Supabase auth)
-CREATE TABLE user_profiles (
-  id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
-  display_name text,
-  avatar_url text,
-  created_at timestamptz DEFAULT now() NOT NULL,
-  updated_at timestamptz DEFAULT now() NOT NULL
-);
-
 -- Organization Members
 CREATE TABLE org_members (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -37,6 +37,16 @@ CREATE TABLE org_members (
   role text NOT NULL DEFAULT 'member',
   created_at timestamptz DEFAULT now() NOT NULL,
   UNIQUE(org_id, user_id)
+);
+
+-- Organization configuration
+CREATE TABLE org_config (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  org_id uuid REFERENCES organizations(id) ON DELETE CASCADE,
+  key text NOT NULL,
+  value jsonb NOT NULL,
+  created_at timestamptz DEFAULT now() NOT NULL,
+  UNIQUE(org_id, key)
 );
 
 -- Projects and Versions with flexible status
@@ -77,6 +87,17 @@ CREATE TABLE version_issues (
   type text NOT NULL,
   status text NOT NULL DEFAULT 'open',
   assigned_to uuid REFERENCES user_profiles(id),
+  created_at timestamptz DEFAULT now() NOT NULL,
+  updated_at timestamptz DEFAULT now() NOT NULL
+);
+
+-- Version workflows
+CREATE TABLE version_workflows (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  template boolean NOT NULL DEFAULT false,
+  version_id uuid REFERENCES versions(id) ON DELETE CASCADE,
+  environment text NOT NULL,
+  content jsonb NOT NULL,
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
 );

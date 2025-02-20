@@ -1,4 +1,4 @@
-import TextEditor from "../components/TextEditor";
+import TextEditor from "../components/editor/TextEditor";
 import PromptCarousel from "../components/PromptCarousel";
 
 export default function Home() {

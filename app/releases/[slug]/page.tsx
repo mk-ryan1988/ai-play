@@ -5,7 +5,7 @@ import { useParams } from 'next/navigation';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
-import ReleaseCheckList from '@/components/releases/ReleasesCheckList';
+import ReleaseWorkflows from '@/components/releases/ReleasesWorkflows';
 
 interface Release {
   id: string;
@@ -30,8 +30,8 @@ export default function ReleasePage() {
       key: 'overview',
     },
     {
-      name: 'Checks',
-      key: 'checks',
+      name: 'Workflows',
+      key: 'workflows',
     },
   ];
 
@@ -99,7 +99,7 @@ export default function ReleasePage() {
           </>
         )}
 
-        {activeTab === 'checks' && <ReleaseCheckList releaseId={release.id} />}
+        {activeTab === 'workflows' && <ReleaseWorkflows releaseId={release.id} />}
       </div>
     </PageWrapper>
   );

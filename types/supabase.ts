@@ -172,6 +172,47 @@ export type Database = {
         }
         Relationships: []
       }
+      version_checklists: {
+        Row: {
+          category: string
+          created_at: string
+          environment: string
+          id: string
+          status: string
+          title: string
+          updated_at: string
+          version_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          environment: string
+          id?: string
+          status?: string
+          title: string
+          updated_at?: string
+          version_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          environment?: string
+          id?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          version_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "version_checklists_version_id_fkey"
+            columns: ["version_id"]
+            isOneToOne: false
+            referencedRelation: "versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       version_issues: {
         Row: {
           assigned_to: string | null
@@ -249,7 +290,7 @@ export type Database = {
           project_id?: string | null
           release_at?: string | null
           released_at?: string | null
-          slug?: string | null
+          slug: string
           status: string
           updated_at?: string
           version_number?: string | null
@@ -264,7 +305,7 @@ export type Database = {
           project_id?: string | null
           release_at?: string | null
           released_at?: string | null
-          slug?: string | null
+          slug?: string
           status?: string
           updated_at?: string
           version_number?: string | null
