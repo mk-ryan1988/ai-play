@@ -68,6 +68,8 @@ CREATE TABLE versions (
   slug text NOT NULL,
   status text NOT NULL, -- Free-form status that matches org_statuses
   version_number text,
+  hotfix boolean NOT NULL DEFAULT false,
+  caused_by uuid REFERENCES versions(id),
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL,
   prepared_at timestamptz,

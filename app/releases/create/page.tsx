@@ -10,6 +10,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { nullifyEmptyStrings } from '@/utils/nullify';
 import ReleasePokedex from '@/components/releases/ReleasePokedex';
+import Toggle from '@/components/ui/Toggle';
 
 const releaseSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -17,6 +18,8 @@ const releaseSchema = z.object({
   description: z.string().optional(),
   project_id: z.string().min(1, 'Project is required'),
   release_at: z.string().optional(),
+  hotfix: z.boolean().optional(),
+  caused_by: z.string().optional(),
 });
 
 type FormData = z.infer<typeof releaseSchema>;
@@ -25,15 +28,19 @@ export default function NewRelease() {
   const router = useRouter();
   const { organization, isLoading: orgLoading } = useOrganization();
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
+  const [releases, setReleases] = useState<Array<{ id: string; name: string }>>([]);
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
-    setValue,
+    getValues,
+    watch,
+    setValue
   } = useForm<FormData>({
     resolver: zodResolver(releaseSchema)
   });
+
 
   useEffect(() => {
     async function fetchProjects() {
@@ -44,6 +51,20 @@ export default function NewRelease() {
     fetchProjects();
   }, []);
 
+  useEffect(() => {
+    async function fetchReleases() {
+      if (!organization) return;
+      const response = await fetch('/api/releases?org_id=' + organization.id);
+      if (!response.ok) {
+        console.error('Failed to fetch releases:', response);
+        return;
+      }
+      const data = await response.json();
+      setReleases(data || []);
+    }
+    fetchReleases();
+  }, [organization]);
+
   const onSubmit = async (data: FormData) => {
     if (!organization) return;
 
@@ -53,7 +74,8 @@ export default function NewRelease() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...nullifyEmptyStrings(data),
-          org_id: organization.id
+          org_id: organization.id,
+          project_name: projects.find((p) => p.id === data.project_id)?.name,
         }),
       });
 
@@ -128,46 +150,33 @@ export default function NewRelease() {
           />
         </div>
 
-        {/* <div className="form-group">
-          <label htmlFor="pokemonSearch">Search Pokémon</label>
-          <input
-            type="text"
-            id="pokemonSearch"
-            value={pokemonName}
-            className="form-input"
-            onChange={(e) => setPokemonName(e.target.value)}
+        <div className="form-group">
+          <Toggle
+            label="Hotfix release?"
+            value={getValues('hotfix')}
+            onChange={(value) => {setValue('hotfix', value)}}
           />
-          <button onClick={handleSearch}>Search</button>
         </div>
-        {searchResult && (
-          <div className="flex items-center space-x-4">
-            <Image
-              src={searchResult.image}
-              alt={searchResult.name}
-              width={100}
-              height={100}
-            />
-            <div>
-              <h3>{searchResult.name}</h3>
-            </div>
-            <button onClick={handleSelectPokemon}>Select</button>
-          </div>
-        )} */}
 
-        {/*
-          TODO: Add config to enable versioning
-        */}
-        {/* <div className="form-group">
-          <label className="form-label">Version</label>
-          <input
-            {...register('version')}
-            placeholder="e.g., 1.0.0"
-            className="form-input"
-          />
-          {errors.version && (
-            <p className="form-error">{errors.version.message}</p>
-          )}
-        </div> */}
+        { watch('hotfix') &&
+          <div className="form-group">
+            <label className="form-label">Caused By</label>
+            <select
+              {...register('caused_by')}
+              className="form-input"
+            >
+              <option value="">Select a release</option>
+              {releases.map((release) => (
+                <option key={release.id} value={release.id}>
+                  {release.name}
+                </option>
+              ))}
+            </select>
+            {errors.caused_by && (
+              <p className="form-error">{errors.caused_by.message}</p>
+            )}
+          </div>
+        }
 
         <div className="form-group">
           <label className="form-label">Description</label>

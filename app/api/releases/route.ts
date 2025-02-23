@@ -5,8 +5,8 @@ import { generateSlug } from '@/utils/slugify';
 export async function POST(request: Request) {
   try {
     const supabase = createClient();
-    const data = await request.json();
-    const slug = generateSlug(data.project_name, data.name);
+    const {project_name, ...data} = await request.json();
+    const slug = generateSlug(project_name, data.name);
 
     // Get the first status of the org ordered by order_index
     const { data: status, error: statusError } = await supabase
