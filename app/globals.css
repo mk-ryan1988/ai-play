@@ -219,6 +219,10 @@
   @apply w-full px-3 py-2 rounded-md border border-primary bg-tertiary
     focus:outline-none focus:ring-2 focus:ring-blue-500
     disabled:bg-gray-100 disabled:cursor-not-allowed;
+
+    &.prefix {
+      @apply pl-14;
+    }
 }
 
 .form-label {

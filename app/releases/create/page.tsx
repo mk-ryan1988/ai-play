@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { nullifyEmptyStrings } from '@/utils/nullify';
+import ReleasePokedex from '@/components/releases/ReleasePokedex';
 
 const releaseSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -28,7 +29,8 @@ export default function NewRelease() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting }
+    formState: { errors, isSubmitting },
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(releaseSchema)
   });
@@ -90,16 +92,67 @@ export default function NewRelease() {
       backTo="/releases"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
-        <div className="form-group">
-          <label className="form-label">Name</label>
-          <input
-            {...register('name')}
+        <div className="form-group w-full sm:w-1/2 md:w-1/3">
+          <label className="form-label">Project</label>
+          <select
+            {...register('project_id')}
             className="form-input"
-          />
-          {errors.name && (
-            <p className="form-error">{errors.name.message}</p>
+          >
+            <option value="">Select a project</option>
+            {projects.map((project) => (
+              <option key={project.id} value={project.id}>
+                {project.name}
+              </option>
+            ))}
+          </select>
+          {errors.project_id && (
+            <p className="form-error">{errors.project_id.message}</p>
           )}
         </div>
+
+        <div className='flex flex-wrap gap-3'>
+          <div className="form-group flex-1">
+            <label htmlFor="name" className="form-label">Name</label>
+            <input
+              {...register('name')}
+              className="form-input"
+              id="name"
+            />
+            {errors.name && (
+              <p className="form-error">{errors.name.message}</p>
+            )}
+          </div>
+
+          <ReleasePokedex
+            onSelect={(name) => {setValue('name', name)}}
+          />
+        </div>
+
+        {/* <div className="form-group">
+          <label htmlFor="pokemonSearch">Search Pokémon</label>
+          <input
+            type="text"
+            id="pokemonSearch"
+            value={pokemonName}
+            className="form-input"
+            onChange={(e) => setPokemonName(e.target.value)}
+          />
+          <button onClick={handleSearch}>Search</button>
+        </div>
+        {searchResult && (
+          <div className="flex items-center space-x-4">
+            <Image
+              src={searchResult.image}
+              alt={searchResult.name}
+              width={100}
+              height={100}
+            />
+            <div>
+              <h3>{searchResult.name}</h3>
+            </div>
+            <button onClick={handleSelectPokemon}>Select</button>
+          </div>
+        )} */}
 
         {/*
           TODO: Add config to enable versioning
@@ -123,24 +176,6 @@ export default function NewRelease() {
             rows={4}
             className="form-input"
           />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Project</label>
-          <select
-            {...register('project_id')}
-            className="form-input"
-          >
-            <option value="">Select a project</option>
-            {projects.map((project) => (
-              <option key={project.id} value={project.id}>
-                {project.name}
-              </option>
-            ))}
-          </select>
-          {errors.project_id && (
-            <p className="form-error">{errors.project_id.message}</p>
-          )}
         </div>
 
         <div className="form-group">
