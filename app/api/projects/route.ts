@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       .insert({
         name,
         description: description || null,
-        repository_url: repository_url || null,
+        repositories: repository_url ? [repository_url] : null,
         org_id: orgData.org_id,
       })
       .select()

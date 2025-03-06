@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
+import ReleaseChecks from '@/components/releases/ReleaseChecks';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
 import ReleaseWorkflows from '@/components/releases/ReleasesWorkflows';
 
@@ -15,6 +16,7 @@ interface Release {
   status: string;
   projects: {
     name: string;
+    repositories: string[];
   };
 }
 
@@ -30,10 +32,19 @@ export default function ReleasePage() {
       key: 'overview',
     },
     {
+      name: 'Checks',
+      key: 'checks',
+    },
+    {
       name: 'Workflows',
       key: 'workflows',
     },
   ];
+
+
+  useEffect(() => {
+    console.log('projects:', release);
+  }, [release]);
 
   useEffect(() => {
     const fetchRelease = async () => {
@@ -99,7 +110,14 @@ export default function ReleasePage() {
           </>
         )}
 
-        {activeTab === 'workflows' && <ReleaseWorkflows releaseId={release.id} />}
+        {activeTab === 'checks' &&
+          <ReleaseChecks
+            releaseName={release.name}
+            repositories={release.projects.repositories}
+          />}
+        {activeTab === 'workflows' &&
+          <ReleaseWorkflows releaseId={release.id} />
+        }
       </div>
     </PageWrapper>
   );

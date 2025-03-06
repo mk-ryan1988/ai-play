@@ -13,7 +13,8 @@ export async function GET(
     .select(`
       *,
       projects (
-        name
+        name,
+        repositories
       )
     `)
     .eq('slug', slug)
