@@ -1,21 +1,6 @@
 import Badge from '../ui/Badge';
+import { Issue } from '@/types/jira/issueTypes';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
-
-type Issue = {
-  id: string;
-  key: string;
-  fields: {
-    summary: string;
-    description: string;
-    status: {
-      name: string;
-      statusCategory: {
-        colorName: 'blue-gray' | 'yellow' | 'green' | 'default';
-        self: string;
-      };
-    };
-  }
-};
 
 const getIssueLink = (issueKey: string) => `${process.env.NEXT_PUBLIC_JIRA_URL}/browse/${issueKey}`;
 

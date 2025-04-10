@@ -1,13 +1,15 @@
 'use client';
 
+import Card from '@/components/Card';
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
+import { Issue } from '@/types/jira/issueTypes';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
 import ReleaseChanges from '@/components/releases/ReleaseChanges';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
 import ReleaseWorkflows from '@/components/releases/ReleasesWorkflows';
-import Card from '@/components/Card';
+import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
 
 interface Release {
   id: string;
@@ -21,17 +23,13 @@ interface Release {
   };
 }
 
-interface ReleaseData {
-  [repoName: string]: GitHubResponse;
-}
-
 export default function ReleasePage() {
   const { slug } = useParams();
   const [release, setRelease] = useState<Release | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [issues, setIssues] = useState<Issue[]>([]);
-  const [changes, setChanges] = useState<ReleaseData | null>(null);
+  const [changes, setChanges] = useState<GithubPullRequestData | null>(null);
 
   const tabs = [
     {

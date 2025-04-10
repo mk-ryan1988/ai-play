@@ -2,39 +2,9 @@ import { useEffect, useState } from 'react';
 import Card from '../Card';
 import { classNames } from '@/utils/classNames';
 import { ChevronUpIcon } from '@heroicons/react/24/solid';
+import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
 
-interface CommitInfo {
-  sha: string;
-  commit: {
-    message: string;
-    author: {
-      name: string;
-      date: string;
-    };
-  };
-  html_url: string;
-}
-
-interface PullRequestInfo {
-  number: number;
-  title: string;
-  html_url: string;
-  state: string;
-}
-
-interface GitHubResponse {
-  exists: boolean;
-  pullRequest?: PullRequestInfo;
-  commits?: CommitInfo[];
-  error?: string;
-}
-
-// data structure
-interface ReleaseData {
-  [repoName: string]: GitHubResponse;
-}
-
-export default function ReleaseChanges({ changes }: { changes: ReleaseData | null }) {
+export default function ReleaseChanges({ changes }: { changes: GithubPullRequestData | null }) {
   const [expanded, setExpanded] = useState<string[] | null>(null);
 
   useEffect(() => {
