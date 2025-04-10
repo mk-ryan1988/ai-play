@@ -34,60 +34,23 @@ interface ReleaseData {
   [repoName: string]: GitHubResponse;
 }
 
-export default function ReleaseChanges({ releaseName, repositories}: { releaseName: string, repositories: string[] }) {
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState<ReleaseData | null>(null);
+export default function ReleaseChanges({ changes }: { changes: ReleaseData | null }) {
   const [expanded, setExpanded] = useState<string[] | null>(null);
 
-  const handleToggle = (repo: string) => {
-    if (expanded && expanded.includes(repo)) {
-      setExpanded(expanded.filter((r) => r !== repo));
-    } else {
-      setExpanded(expanded ? [...expanded, repo] : [repo]);
-    }
-  };
-
   useEffect(() => {
-    async function checkRelease() {
-      try {
-        const repos = repositories ? repositories.join(',') : '';
-        const response = await fetch(`/api/github/compare?release=${releaseName}${repos ? `&repositories=${repos}` : ''}`);
-        const data = await response.json();
-
-        if (data.error) {
-          setData(null);
-          return;
-        }
-
-        if (!Object.keys(data).length) {
-          setData(null);
-          return;
-        }
-
-        setExpanded(Object.keys(data));
-        setData(data);
-      } catch (error) {
-        console.error('Error checking release:', error);
-      } finally {
-        setLoading(false);
-      }
+    if (changes) {
+      setExpanded(Object.keys(changes));
     }
+  }, [changes]);
 
-    checkRelease();
-  }, [releaseName, repositories]);
-
-  if (loading) {
-    return <div>Loading release information...</div>;
-  }
-
-  if (!data) {
-    return <div>Error loading release information</div>;
+  if (!changes) {
+    return <div>No changes found for this release.</div>;
   }
 
   return (
     <div className="space-y-4">
-      { Object.keys(data).map((repo, index) => {
-        const repoData = data[repo];
+      { Object.keys(changes).map((repo, index) => {
+        const repoData = changes[repo];
         const { exists, pullRequest, commits } = repoData;
 
         return (

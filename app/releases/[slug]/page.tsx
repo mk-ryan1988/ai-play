@@ -21,11 +21,17 @@ interface Release {
   };
 }
 
+interface ReleaseData {
+  [repoName: string]: GitHubResponse;
+}
+
 export default function ReleasePage() {
   const { slug } = useParams();
   const [release, setRelease] = useState<Release | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
+  const [issues, setIssues] = useState<Issue[]>([]);
+  const [changes, setChanges] = useState<ReleaseData | null>(null);
 
   const tabs = [
     {
@@ -42,25 +48,49 @@ export default function ReleasePage() {
     },
   ];
 
-
   useEffect(() => {
     console.log('projects:', release);
   }, [release]);
 
   useEffect(() => {
-    const fetchRelease = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/releases/${slug}`);
-        const data = await response.json();
-        setRelease(data);
+        const [releaseResponse, issuesResponse] = await Promise.all([
+          fetch(`/api/releases/${slug}`),
+          fetch(`/api/jira?fixVersion=${slug}`)
+        ]);
+
+        const [releaseData, issuesData] = await Promise.all([
+          releaseResponse.json(),
+          issuesResponse.json()
+        ]);
+
+        setRelease(releaseData);
+
+        if (issuesData.issues?.length > 0) {
+          setIssues(issuesData.issues);
+        }
+
+        // Fetch changes after we have the release data
+        if (releaseData?.projects?.repositories) {
+          const repos = releaseData.projects.repositories.join(',');
+          const changesResponse = await fetch(
+            `/api/github/compare?release=${releaseData.name}&repositories=${repos}`
+          );
+          const changesData = await changesResponse.json();
+
+          if (!changesData.error && Object.keys(changesData).length > 0) {
+            setChanges(changesData);
+          }
+        }
       } catch (error) {
-        console.error('Error fetching release:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchRelease();
+    fetchData();
   }, [slug]);
 
   if (loading) {
@@ -106,15 +136,14 @@ export default function ReleasePage() {
 
             <div className="mt-4 p-4">
               <h2 className="text-title font-semibold mb-4">Issues</h2>
-              <ReleaseIssuesList releaseSlug={release.slug} />
+              <ReleaseIssuesList issues={issues} />
             </div>
           </>
         )}
 
         {activeTab === 'changes' &&
           <ReleaseChanges
-            releaseName={release.name}
-            repositories={release.projects.repositories}
+            changes={changes}
           />}
         {activeTab === 'workflows' &&
           <ReleaseWorkflows releaseId={release.id} />

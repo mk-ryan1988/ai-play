@@ -1,5 +1,4 @@
 import Badge from '../ui/Badge';
-import { useEffect, useState } from 'react';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
 
 type Issue = {
@@ -20,37 +19,7 @@ type Issue = {
 
 const getIssueLink = (issueKey: string) => `${process.env.NEXT_PUBLIC_JIRA_URL}/browse/${issueKey}`;
 
-export default function ReleaseIssuesList({ releaseSlug }: { releaseSlug: string }) {
-  const [issues, setIssues] = useState<Issue[]>([]);
-
-  useEffect(() => {
-    if (!releaseSlug) {
-      return;
-    }
-
-    const fetchIssues = async () => {
-      try {
-        const response = await fetch(`/api/jira?fixVersion=${releaseSlug}`);
-        const data = await response.json();
-        console.log('Issues:', data);
-
-        if (data.errorMessages) {
-          console.error('Error fetching issues:', data.errorMessages[0]);
-          return;
-        }
-
-        if (data.issues.length > 0) {
-          setIssues(data.issues);
-          return;
-        }
-      } catch (error) {
-        console.error('Error fetching issues:', error);
-      }
-    }
-
-    fetchIssues();
-  }, [releaseSlug]);
-
+export default function ReleaseIssuesList({ issues }: { issues: Issue[] }) {
   return (
     <div className="space-y-px divide-y divide-tertiary">
       {issues.map((issue) => (
