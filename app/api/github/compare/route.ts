@@ -40,10 +40,6 @@ const fetchChangesForRelease = async (releaseName: string, repository: string) =
   // Get owner and repo name
   const [repo, owner] = repository.split('/').reverse();
 
-  console.log('owner', owner);
-  console.log('repo', repo);
-
-
   // First, find the PR for this release
   const prs = await octokit.pulls.list({
     owner,
@@ -88,7 +84,15 @@ export async function GET(request: NextRequest) {
 
     const data = await Promise.all(repositories.map(repository => fetchChangesForRelease(releaseName, repository)));
 
-    return new Response(JSON.stringify(data), {
+    // Reduce the data to an object with the repository name as the key
+    const mappedData = data.reduce((acc, item, index) => {
+      const repository = repositories[index];
+      const repositoryName = repository.split('/').reverse()[0];
+      acc[repositoryName] = item;
+      return acc;
+    }, {} as Record<string, { exists: boolean; pullRequest: unknown; commits: unknown[] }>);
+
+    return new Response(JSON.stringify(mappedData), {
       headers: {
         'Content-Type': 'application/json'
       }

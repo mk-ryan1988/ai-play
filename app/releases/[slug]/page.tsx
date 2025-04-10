@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
-import ReleaseChecks from '@/components/releases/ReleaseChecks';
+import ReleaseChanges from '@/components/releases/ReleaseChanges';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
 import ReleaseWorkflows from '@/components/releases/ReleasesWorkflows';
+import Card from '@/components/Card';
 
 interface Release {
   id: string;
@@ -32,8 +33,8 @@ export default function ReleasePage() {
       key: 'overview',
     },
     {
-      name: 'Checks',
-      key: 'checks',
+      name: 'Changes',
+      key: 'changes',
     },
     {
       name: 'Workflows',
@@ -90,7 +91,7 @@ export default function ReleasePage() {
       <div className="mt-4">
         {activeTab === 'overview' && (
           <>
-            <div className="flex flex-wrap gap-2 p-4 border border-tertiary rounded-tl rounded-tr border-b-0">
+            <Card>
               <span className="text-title font-semibold">{release.projects.name}</span>
               <span className="text-subtitle">/</span>
               <span className="text-title font-semibold">{release.name}</span>
@@ -99,7 +100,7 @@ export default function ReleasePage() {
                 <span className="text-subtitle">Status:</span>
                 <span className="text-title font-semibold">{release.status}</span>
               </div>
-            </div>
+            </Card>
 
             <ReleasesStats />
 
@@ -110,8 +111,8 @@ export default function ReleasePage() {
           </>
         )}
 
-        {activeTab === 'checks' &&
-          <ReleaseChecks
+        {activeTab === 'changes' &&
+          <ReleaseChanges
             releaseName={release.name}
             repositories={release.projects.repositories}
           />}
