@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Card from '../Card';
 import { classNames } from '@/utils/classNames';
+import { ChevronUpIcon } from '@heroicons/react/24/solid';
 
 interface CommitInfo {
   sha: string;
@@ -36,26 +37,15 @@ interface ReleaseData {
 export default function ReleaseChanges({ releaseName, repositories}: { releaseName: string, repositories: string[] }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ReleaseData | null>(null);
+  const [expanded, setExpanded] = useState<string[] | null>(null);
 
-  const activity = [
-    { id: 1, type: 'created', person: { name: 'Chelsea Hagon' }, date: '7d ago', dateTime: '2023-01-23T10:32' },
-    { id: 2, type: 'edited', person: { name: 'Chelsea Hagon' }, date: '6d ago', dateTime: '2023-01-23T11:03' },
-    { id: 3, type: 'sent', person: { name: 'Chelsea Hagon' }, date: '6d ago', dateTime: '2023-01-23T11:24' },
-    {
-      id: 4,
-      type: 'commented',
-      person: {
-        name: 'Chelsea Hagon',
-        imageUrl:
-          'https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-      },
-      comment: 'Called client, they reassured me the invoice would be paid by the 25th.',
-      date: '3d ago',
-      dateTime: '2023-01-23T15:56',
-    },
-    { id: 5, type: 'viewed', person: { name: 'Alex Curren' }, date: '2d ago', dateTime: '2023-01-24T09:12' },
-    { id: 6, type: 'paid', person: { name: 'Alex Curren' }, date: '1d ago', dateTime: '2023-01-24T09:20' },
-  ];
+  const handleToggle = (repo: string) => {
+    if (expanded && expanded.includes(repo)) {
+      setExpanded(expanded.filter((r) => r !== repo));
+    } else {
+      setExpanded(expanded ? [...expanded, repo] : [repo]);
+    }
+  };
 
   useEffect(() => {
     async function checkRelease() {
@@ -74,6 +64,7 @@ export default function ReleaseChanges({ releaseName, repositories}: { releaseNa
           return;
         }
 
+        setExpanded(Object.keys(data));
         setData(data);
       } catch (error) {
         console.error('Error checking release:', error);
@@ -101,18 +92,30 @@ export default function ReleaseChanges({ releaseName, repositories}: { releaseNa
 
         return (
           <div key={index}>
-            <h2 className="text-title font-semibold mb-4">{repo}</h2>
+
+            <button
+              type="button"
+              className="flex items-center gap-x-2 text-sm font-semibold leading-6 text-label hover:text-title"
+              onClick={() => {handleToggle(repo)}}
+            >
+              {expanded && expanded.includes(repo) ? (
+                <ChevronUpIcon className='w-4 h-4 font-bold ml-1.5 mr-3' />
+              ) : (
+                <ChevronUpIcon className='w-4 h-4 font-bold ml-1.5 mr-3 rotate-180' />
+              )}
+              <h2 className="text-title font-semibold">{repo}</h2>
+            </button>
             {exists ? (
               <>
-                {/* {pullRequest && (
-                  <div>
-                    <p>Pull Request: <a href={pullRequest.html_url} target="_blank" rel="noopener noreferrer">{pullRequest.title}</a></p>
-                    <p>Status: {pullRequest.state}</p>
-                  </div>
-                )} */}
                 {commits && commits.length > 0 && (
                   <>
-                  <ul role="list" className="mt-6 space-y-6">
+                  <ul
+                    role="list"
+                    className={classNames(
+                      'mt-6 space-y-6',
+                      expanded && expanded.includes(repo) ? 'block' : 'hidden'
+                    )}
+                  >
                       {commits.map((commit, commitIdx) => (
                         <li
                           key={commit.sha}
@@ -124,11 +127,11 @@ export default function ReleaseChanges({ releaseName, repositories}: { releaseNa
                               'absolute left-0 top-0 flex w-6 justify-center'
                             )}
                           >
-                            <div className="w-px bg-gray-200" />
+                            <div className="w-px bg-tertiary" />
                           </div>
                           <>
-                              <div className="relative flex size-6 flex-none items-center justify-center">
-                                <div className="size-1.5 rounded-full bg-gray-100 ring-1 ring-gray-300" />
+                              <div className="relative flex size-6 mt-3 flex-none items-center justify-center">
+                                <div className="size-1.5 rounded-full bg-tertiary ring-1 ring-tertiary" />
                               </div>
                               <Card className="flex w-full justify-between items-center py-3 px-4">
                                 <div className="text-title">
