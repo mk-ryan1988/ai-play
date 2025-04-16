@@ -7,6 +7,14 @@ import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
 export default function ReleaseChanges({ changes }: { changes: GithubPullRequestData | null }) {
   const [expanded, setExpanded] = useState<string[] | null>(null);
 
+  const handleToggle = (repo: string) => {
+    if (expanded && expanded.includes(repo)) {
+      setExpanded(expanded.filter((r) => r !== repo));
+    } else {
+      setExpanded(expanded ? [...expanded, repo] : [repo]);
+    }
+  };
+
   useEffect(() => {
     if (changes) {
       setExpanded(Object.keys(changes));
