@@ -10,6 +10,8 @@ import ReleaseChanges from '@/components/releases/ReleaseChanges';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
 import ReleaseWorkflows from '@/components/releases/ReleasesWorkflows';
 import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
+import { determineIssuesBuildStatus } from '@/utils/buildStatus';
+import { IssueWithBuildStatus } from '@/types/buildStatus';
 
 interface Release {
   id: string;
@@ -30,6 +32,7 @@ export default function ReleasePage() {
   const [activeTab, setActiveTab] = useState('overview');
   const [issues, setIssues] = useState<Issue[]>([]);
   const [changes, setChanges] = useState<GithubPullRequestData | null>(null);
+  const [processedIssues, setProcessedIssues] = useState<IssueWithBuildStatus[]>([]);
 
   const tabs = [
     {
@@ -91,6 +94,13 @@ export default function ReleasePage() {
     fetchData();
   }, [slug]);
 
+  useEffect(() => {
+    if (issues.length && changes) {
+      const processedIssues = determineIssuesBuildStatus(issues, changes);
+      setProcessedIssues(processedIssues);
+    }
+  }, [issues, changes]);
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -134,7 +144,7 @@ export default function ReleasePage() {
 
             <div className="mt-4 p-4">
               <h2 className="text-title font-semibold mb-4">Issues</h2>
-              <ReleaseIssuesList issues={issues} />
+              <ReleaseIssuesList issues={processedIssues} />
             </div>
           </>
         )}
