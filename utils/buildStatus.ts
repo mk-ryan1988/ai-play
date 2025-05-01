@@ -20,25 +20,26 @@ export const determineIssuesBuildStatus = (
     const issueInRepos = Object.values(changes).reduce((acc, repoData) => {
       if (!repoData.exists || !repoData.commits?.length) return acc;
 
-      const commits = repoData.commits.reduce((commitAcc, commit) => {
+      // Sort commits by date in descending order (newest first)
+      const sortedCommits = [...repoData.commits].sort((a, b) => {
+        return new Date(b.commit.author.date).getTime() - new Date(a.commit.author.date).getTime();
+      });
+
+      // Find the latest commit that mentions this issue
+      const latestRelevantCommit = sortedCommits.find(commit => {
         const message = commit.commit.message.toUpperCase();
-        const isRevert = message.startsWith('REVERT') && message.includes(issue.key);
-        const isCommit = message.includes(issue.key);
+        return message.includes(issue.key);
+      });
+
+      if (latestRelevantCommit) {
+        const message = latestRelevantCommit.commit.message.toUpperCase();
+        const isRevert = message.startsWith('REVERT');
 
         if (isRevert) {
-          commitAcc.reverted = true;
-        } else if (isCommit && !commitAcc.reverted) {
-          commitAcc.hasCommit = true;
+          acc.hasReverts = true;
+        } else {
+          acc.count++;
         }
-
-        return commitAcc;
-      }, { hasCommit: false, reverted: false });
-
-      // Only count repository if it has non-reverted commits
-      if (commits.hasCommit && !commits.reverted) {
-        acc.count++;
-      } else if (commits.reverted) {
-        acc.hasReverts = true;
       }
 
       return acc;
