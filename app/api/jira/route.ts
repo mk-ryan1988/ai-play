@@ -21,14 +21,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const jql = `project = ${PROJECT_KEY} AND fixVersion = ${fixVersion}`;
-    const response = await fetch(generateEndpoint('search') + `?jql=${encodeURIComponent(jql)}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Basic ${auth}`,
-        'Accept': 'application/json',
-        'Accept-Language': 'en-US',
+
+    const fields = [
+      'summary',
+      'status',
+      'issuetype',
+      'labels',
+      'assignee',
+      'customfield_10038', // Tester
+      'customfield_10037', // Testing State
+    ];
+
+    const response = await fetch(
+      generateEndpoint('search') +
+      `?jql=${encodeURIComponent(jql)}` +
+      `&fields=${fields.join(',')}`,
+      {
+        method: 'GET',
+        headers: {
+          'Authorization': `Basic ${auth}`,
+          'Accept': 'application/json',
+          'Accept-Language': 'en-US',
+        }
       }
-    });
+    );
 
     const data = await response.json();
 
