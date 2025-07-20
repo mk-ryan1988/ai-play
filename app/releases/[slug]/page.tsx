@@ -8,7 +8,6 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
 import ReleaseChanges from '@/components/releases/ReleaseChanges';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
-import ReleaseWorkflows from '@/components/releases/ReleasesWorkflows';
 import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
 import { determineIssuesBuildStatus } from '@/utils/buildStatus';
 import { IssueWithBuildStatus } from '@/types/buildStatus';
@@ -42,10 +41,6 @@ export default function ReleasePage() {
     {
       name: 'Changes',
       key: 'changes',
-    },
-    {
-      name: 'Workflows',
-      key: 'workflows',
     },
   ];
 
@@ -153,9 +148,6 @@ export default function ReleasePage() {
           <ReleaseChanges
             changes={changes}
           />}
-        {activeTab === 'workflows' &&
-          <ReleaseWorkflows releaseId={release.id} />
-        }
       </div>
     </PageWrapper>
   );
