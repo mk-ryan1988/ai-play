@@ -138,7 +138,6 @@ export default function ReleasePage() {
             <ReleasesStats />
 
             <div className="mt-4 p-4">
-              <h2 className="text-title font-semibold mb-4">Issues</h2>
               <ReleaseIssuesList issues={processedIssues} />
             </div>
           </>

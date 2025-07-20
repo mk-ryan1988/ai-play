@@ -31,18 +31,18 @@ export default function ReleaseIssuesTable({
         </colgroup>
         <thead className="border-b border-tertiary text-label font-mono uppercase text-xs">
           <tr>
-            <th className="py-2 px-4">Issue</th>
+            <th className="py-2 pr-4">Issue</th>
             <th className="py-2 px-4">Assignee</th>
             <th className="py-2 px-4">Tester</th>
             <th className="py-2 px-4">Testing Status</th>
             <th className="py-2 px-4">Build</th>
-            <th className="py-2 px-4 text-right">Link</th>
+            <th className="py-2 pl-4 text-right">Link</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-tertiary text-foreground">
           {issues.map((issue) => (
             <tr key={issue.id} className="hover:bg-background/50 transition-colors">
-              <td className="py-3 px-4">
+              <td className="py-3 pr-4">
                 <div className="font-medium">{issue.key}</div>
                 <div className="text-label text-xs truncate">{issue.fields.summary}</div>
               </td>
@@ -85,7 +85,7 @@ export default function ReleaseIssuesTable({
                   {issue.buildStatus.replace(/-/g, ' ')}
                 </Badge>
               </td>
-              <td className="py-3 px-4 text-right">
+              <td className="py-3 pl-4 text-right">
                 <a
                   href={getIssueLink(issue.key)}
                   target="_blank"
