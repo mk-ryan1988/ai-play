@@ -236,3 +236,8 @@
 .form-group {
   @apply mb-4;
 }
+
+/* remove disables input bg */
+.form-input:disabled {
+  @apply bg-transparent
+}

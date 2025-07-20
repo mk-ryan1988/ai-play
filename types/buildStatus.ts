@@ -4,4 +4,6 @@ export type BuildStatus = 'unknown' | 'not-in-build' | 'partially-in-build' | 'i
 
 export interface IssueWithBuildStatus extends Issue {
   buildStatus: BuildStatus;
+  statusOverridden: boolean;
+  versionIssueId?: string;
 }

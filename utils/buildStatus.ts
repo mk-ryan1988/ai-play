@@ -1,19 +1,34 @@
 import { BuildStatus, IssueWithBuildStatus } from '@/types/buildStatus';
 import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
 import { Issue } from '@/types/jira/issueTypes';
+import { Database } from '@/types/supabase';
+
+type VersionIssue = Database['public']['Tables']['version_issues']['Row'];
 
 export const determineIssuesBuildStatus = (
   issues: Issue[],
+  versionIssues: VersionIssue[],
   changes: GithubPullRequestData | null
 ): IssueWithBuildStatus[] => {
   if (!changes || !issues.length) {
-    return issues.map(issue => ({ ...issue, buildStatus: 'unknown' as BuildStatus }));
+    return issues.map(issue => ({ ...issue, buildStatus: 'unknown' as BuildStatus, statusOverridden: false }));
   }
 
   return issues.map(issue => {
+    // First check if we have a stored build status for this issue
+    const versionIssue = versionIssues.find(vi => vi.issue_key === issue.key);
+    if (versionIssue?.build_status) {
+      return {
+        ...issue,
+        buildStatus: versionIssue.build_status as BuildStatus,
+        statusOverridden: true,
+        versionIssueId: versionIssue.id
+      };
+    }
+
     const hasReleaseLabel = issue.fields?.labels?.includes('release-current');
     if (!hasReleaseLabel) {
-      return { ...issue, buildStatus: 'unknown' as BuildStatus };
+      return { ...issue, buildStatus: 'unknown' as BuildStatus, statusOverridden: false, versionIssueId: versionIssue?.id };
     }
 
     // Check all repositories for commits and reverts
@@ -57,6 +72,11 @@ export const determineIssuesBuildStatus = (
       buildStatus = 'partially-in-build';
     }
 
-    return { ...issue, buildStatus };
+    return {
+      ...issue,
+      buildStatus,
+      statusOverridden: false,
+      versionIssueId: versionIssue?.id
+    };
   });
 };

@@ -84,11 +84,9 @@ CREATE TABLE versions (
 CREATE TABLE version_issues (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   version_id uuid REFERENCES versions(id) ON DELETE CASCADE,
-  title text NOT NULL,
-  description text,
-  type text NOT NULL,
-  status text NOT NULL DEFAULT 'open',
-  assigned_to uuid REFERENCES user_profiles(id),
+  issue_key text NOT NULL,
+  build_status text DEFAULT NULL,
+  notes text,
   created_at timestamptz DEFAULT now() NOT NULL,
   updated_at timestamptz DEFAULT now() NOT NULL
 );
