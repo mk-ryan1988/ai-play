@@ -8,7 +8,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
 import ReleaseChanges from '@/components/releases/ReleaseChanges';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
-import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
+import { GithubPullRequestData, GitHubResponse, CommitInfo } from '@/types/github/pullRequestTypes';
 import { determineIssuesBuildStatus } from '@/utils/buildStatus';
 import { IssueWithBuildStatus } from '@/types/buildStatus';
 import { Database } from '@/types/supabase';
@@ -36,6 +36,7 @@ export default function ReleasePage() {
   const [versionIssues, setVersionIssues] = useState<VersionIssue[]>([]);
   const [changes, setChanges] = useState<GithubPullRequestData | null>(null);
   const [processedIssues, setProcessedIssues] = useState<IssueWithBuildStatus[]>([]);
+  const [unlinkedCommits, setUnlinkedCommits] = useState<Array<{ repo: string; commit: CommitInfo }>>([]);
 
   const tabs = [
     {
@@ -43,7 +44,9 @@ export default function ReleasePage() {
       key: 'overview',
     },
     {
-      name: 'Changes',
+      name: unlinkedCommits.length > 0
+        ? `Changes (${unlinkedCommits.length})`
+        : 'Changes',
       key: 'changes',
     },
   ];
@@ -100,10 +103,28 @@ export default function ReleasePage() {
         const changesResponse = await fetch(
           `/api/github/compare?release=${releaseData.name}&repositories=${repos}`
         );
-        const changesData = await changesResponse.json();
+        const changesData = await changesResponse.json() as GithubPullRequestData;
 
         if (!changesData.error && Object.keys(changesData).length > 0) {
+          // Find commits without Jira references
+          const unlinked: Array<{ repo: string; commit: any }> = [];
+
+          Object.entries(changesData).forEach(([repo, data]: [string, GitHubResponse]) => {
+            if (data.commits) {
+              data.commits.forEach((commit: CommitInfo) => {
+                const message = commit.commit.message.toUpperCase();
+                const hasJiraReference = issuesData.issues.some(
+                  (issue: Issue) => message.includes(issue.key)
+                );
+                commit.untracked = !hasJiraReference;
+                if (!hasJiraReference) {
+                  unlinked.push({ repo, commit });
+                }
+              });
+            }
+          });
           setChanges(changesData);
+          setUnlinkedCommits(unlinked);
         }
       }
     } catch (error) {
@@ -146,15 +167,22 @@ export default function ReleasePage() {
       backTo="/releases"
     >
       <div className="flex gap-2">
-        {tabs.map((tab) => (
-          <button
-            key={tab.key}
-            className={`${activeTab === tab.key ? 'font-bold' : ''} px-4 py-2 rounded-md`}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.name}
-          </button>
-        ))}
+        {tabs.map((tab) => {
+          const isChangesTab = tab.key === 'changes';
+          const hasUnlinkedCommits = unlinkedCommits.length > 0;
+
+          return (
+            <button
+              key={tab.key}
+              className={`${activeTab === tab.key ? 'font-bold' : ''} px-4 py-2 rounded-md`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              <span className={isChangesTab && hasUnlinkedCommits ? 'text-red-500' : ''}>
+                {tab.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="mt-4">
@@ -182,6 +210,7 @@ export default function ReleasePage() {
         {activeTab === 'changes' &&
           <ReleaseChanges
             changes={changes}
+            unlinkedCommits={unlinkedCommits}
           />}
       </div>
     </PageWrapper>

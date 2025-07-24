@@ -1,4 +1,4 @@
-interface CommitInfo {
+export interface CommitInfo {
   sha: string;
   commit: {
     message: string;
@@ -8,6 +8,7 @@ interface CommitInfo {
     };
   };
   html_url: string;
+  untracked?: boolean;
 }
 
 interface PullRequestInfo {
@@ -17,7 +18,7 @@ interface PullRequestInfo {
   state: string;
 }
 
-interface GitHubResponse {
+export interface GitHubResponse {
   exists: boolean;
   pullRequest?: PullRequestInfo;
   commits?: CommitInfo[];

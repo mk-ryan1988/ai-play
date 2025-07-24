@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react';
 import Card from '../Card';
 import { classNames } from '@/utils/classNames';
-import { ChevronUpIcon } from '@heroicons/react/24/solid';
-import { GithubPullRequestData } from '@/types/github/pullRequestTypes';
+import { ChevronUpIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
+import { GithubPullRequestData, CommitInfo } from '@/types/github/pullRequestTypes';
 
-export default function ReleaseChanges({ changes }: { changes: GithubPullRequestData | null }) {
+export default function ReleaseChanges({ changes, unlinkedCommits }: { changes: GithubPullRequestData | null, unlinkedCommits: Array<{ repo: string; commit: CommitInfo }> }) {
   const [expanded, setExpanded] = useState<string[] | null>(null);
+
+  console.log('changes', changes);
 
   const handleToggle = (repo: string) => {
     if (expanded && expanded.includes(repo)) {
@@ -74,14 +76,21 @@ export default function ReleaseChanges({ changes }: { changes: GithubPullRequest
                               <div className="relative flex size-6 mt-3 flex-none items-center justify-center">
                                 <div className="size-1.5 rounded-full bg-tertiary ring-1 ring-tertiary" />
                               </div>
-                              <Card className="flex w-full justify-between items-center py-3 px-4">
-                                <div className="text-title">
-                                  {commit.commit.message}
-
-                                  <div className="mt-1 flex gap-x-2">
-                                    <p className="text-xs leading-5 text-label">
-                                      {commit.commit.author.name} on {new Date(commit.commit.author.date).toLocaleDateString()}
-                                    </p>
+                              <Card className={classNames(
+                                "flex w-full justify-between items-center py-3 px-4",
+                                commit.untracked ? "border-red-500 border" : ""
+                              )}>
+                                <div className="text-title flex items-start gap-2">
+                                  {commit.untracked && (
+                                    <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                                  )}
+                                  <div>
+                                    {commit.commit.message}
+                                    <div className="mt-1 flex gap-x-2">
+                                      <p className="text-xs leading-5 text-label">
+                                        {commit.commit.author.name} on {new Date(commit.commit.author.date).toLocaleDateString()}
+                                      </p>
+                                    </div>
                                   </div>
                                 </div>
 
@@ -92,7 +101,7 @@ export default function ReleaseChanges({ changes }: { changes: GithubPullRequest
                                     rel="noopener noreferrer"
                                     className="text-label hover:text-title"
                                   >
-                                  {commit.sha.substring(0, 6)}
+                                    {commit.sha.substring(0, 6)}
                                   </a>
                                 </div>
                               </Card>
