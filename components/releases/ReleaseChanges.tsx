@@ -2,25 +2,22 @@ import { useEffect, useState } from 'react';
 import { classNames } from '@/utils/classNames';
 import { ChevronUpIcon } from '@heroicons/react/24/solid';
 import { GithubPullRequestData, CommitInfo } from '@/types/github/pullRequestTypes';
-import Dialog from '../Dialog';
 import CommitRow from './CommitRow';
 
-export default function ReleaseChanges({ changes, unlinkedCommits }: { changes: GithubPullRequestData | null, unlinkedCommits: Array<{ repo: string; commit: CommitInfo }> }) {
-  const [expanded, setExpanded] = useState<string[] | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedCommit, setSelectedCommit] = useState<CommitInfo | null>(null);
+interface ReleaseChangesProps {
+  changes: GithubPullRequestData | null;
+  unlinkedCommits: Array<{ repo: string; commit: CommitInfo }>;
+  versionId: string;
+}
 
+export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: ReleaseChangesProps) {
+  const [expanded, setExpanded] = useState<string[] | null>(null);
   const handleToggle = (repo: string) => {
     if (expanded && expanded.includes(repo)) {
       setExpanded(expanded.filter((r) => r !== repo));
     } else {
       setExpanded(expanded ? [...expanded, repo] : [repo]);
     }
-  };
-
-  const handleAnnotateCommit = (commit: CommitInfo) => {
-    setSelectedCommit(commit);
-    setIsDialogOpen(true);
   };
 
   useEffect(() => {
@@ -70,7 +67,7 @@ export default function ReleaseChanges({ changes, unlinkedCommits }: { changes: 
                           key={commit.sha}
                           commit={commit}
                           isLast={commitIdx === commits.length - 1}
-                          onAnnotateClick={handleAnnotateCommit}
+                          versionId={versionId}
                         />
                       ))}
                     </ul></>
@@ -82,12 +79,6 @@ export default function ReleaseChanges({ changes, unlinkedCommits }: { changes: 
           </div>
         );
       })}
-
-      <Dialog
-        isOpen={isDialogOpen}
-        onClose={() => setIsDialogOpen(false)}
-        type="commit-annotation"
-      />
     </div>
   );
 }

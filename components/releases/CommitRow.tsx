@@ -2,14 +2,17 @@ import { ChatBubbleOvalLeftEllipsisIcon, ExclamationTriangleIcon } from '@heroic
 import { CommitInfo } from '@/types/github/pullRequestTypes';
 import { classNames } from '@/utils/classNames';
 import Card from '../Card';
+import { useDialog } from '@/contexts/DialogContext';
+import CommitAnnotationDialog from './CommitAnnotationDialog';
 
 interface CommitRowProps {
   commit: CommitInfo;
   isLast: boolean;
-  onAnnotateClick: (commit: CommitInfo) => void;
+  versionId: string;
 }
 
-export default function CommitRow({ commit, isLast, onAnnotateClick }: CommitRowProps) {
+export default function CommitRow({ commit, isLast, versionId }: CommitRowProps) {
+  const { openDialog } = useDialog();
   return (
     <li className="relative flex gap-x-4">
       <div
@@ -46,7 +49,30 @@ export default function CommitRow({ commit, isLast, onAnnotateClick }: CommitRow
         <div className="flex items-center gap-4">
           {commit.untracked && (
             <button
-              onClick={() => onAnnotateClick(commit)}
+              onClick={() => {
+                openDialog({
+                  title: 'Annotate Commit',
+                  content: (
+                    <CommitAnnotationDialog
+                      commit={commit}
+                      onSave={async (note) => {
+                        await fetch('/api/version-commit-checks', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                          },
+                          body: JSON.stringify({
+                            version_id: versionId,
+                            repository: commit.repository,
+                            commit_sha: commit.sha,
+                            note,
+                          }),
+                        });
+                      }}
+                    />
+                  ),
+                });
+              }}
               className="p-1 hover:bg-tertiary rounded-md transition-colors"
             >
               <ChatBubbleOvalLeftEllipsisIcon className="w-5 h-5 text-label hover:text-title" />

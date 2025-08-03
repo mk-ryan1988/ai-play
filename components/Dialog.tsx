@@ -6,10 +6,11 @@ import TextEditor from './editor/TextEditor';
 interface DialogProps {
   isOpen: boolean;
   onClose: () => void;
-  type: string;
+  title?: string;
+  children: React.ReactNode;
 }
 
-export default function Dialog({ isOpen, onClose, type }: DialogProps) {
+export default function Dialog({ isOpen, onClose, title, children }: DialogProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const mainElement = useRef<HTMLElement | null>(null);
 
@@ -22,6 +23,7 @@ export default function Dialog({ isOpen, onClose, type }: DialogProps) {
 
     if (isOpen) {
       dialog.current?.showModal();
+      document.body.style.overflow = 'hidden';
 
       if (mainElement.current && dialog.current) {
         const rect = mainElement.current.getBoundingClientRect();
@@ -33,7 +35,12 @@ export default function Dialog({ isOpen, onClose, type }: DialogProps) {
       }
     } else {
       dialog.current?.close();
+      document.body.style.overflow = '';
     }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   const handleKeyDown = (e: KeyboardEvent) => {
@@ -70,12 +77,14 @@ export default function Dialog({ isOpen, onClose, type }: DialogProps) {
           <XMarkIcon className="w-6 h-6 text-label hover:text-title" />
         </button>
 
-        <h2 className="text-2xl font-semibold text-title capitalize mb-4 pr-12">
-          {type.replace(/-/g, ' ')}
-        </h2>
+        {title && (
+          <h2 className="text-2xl font-semibold text-title capitalize mb-4 pr-12">
+            {title}
+          </h2>
+        )}
 
         <div className="flex-1 overflow-auto">
-          <TextEditor />
+          {children}
         </div>
       </div>
     </dialog>
