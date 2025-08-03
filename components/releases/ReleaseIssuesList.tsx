@@ -93,18 +93,20 @@ export default function ReleaseIssuesTable({
     <div className="bg-background py-8">
       <table className="w-full text-left text-sm">
         <colgroup>
+          <col className="w-1/5" />
+          <col className="w-1/7" />
+          <col className="w-1/7" />
+          <col className="w-1/7" />
+          <col className="w-1/7" />
           <col className="w-1/4" />
-          <col className="w-1/4" />
-          <col className="w-1/6" />
-          <col className="w-1/6" />
-          <col className="w-1/6" />
-          <col className="w-6" />
+          <col className="w-12" />
         </colgroup>
         <thead className="border-b border-tertiary text-label font-mono uppercase text-xs">
           <tr>
             <th className="py-2 pr-4">Issue</th>
             <th className="py-2 px-4">Assignee</th>
             <th className="py-2 px-4">Tester</th>
+            <th className="py-2 px-4">Release Critical</th>
             <th className="py-2 px-4">Testing Status</th>
             <th className="py-2 px-4">Build</th>
             <th className="py-2 pl-4 text-right">Link</th>
@@ -130,6 +132,7 @@ export default function ReleaseIssuesTable({
                 )}
               </td>
               <td className="py-3 px-4">
+                {/* Tester Field */}
                 {issue.fields.customfield_10038 && (
                   <div className="flex items-center gap-2">
                     <img
@@ -141,23 +144,32 @@ export default function ReleaseIssuesTable({
                   </div>
                 )}
               </td>
+
+              {/* Release Critical Field */}
+              <td className="py-3 px-4">
+                {issue.fields.customfield_10104 ? (
+                  <Badge color="blue">
+                    {issue.fields.customfield_10104.value}
+                  </Badge>
+                ) : (
+                  <span className="text-label"></span>
+                )}
+              </td>
+
               <td className="py-3 px-4">
                 {/* <Badge color={issue.fields.status.statusCategory.colorName}>
                   {issue.fields.status.name}
                 </Badge> */}
+                {/* Testing State Field */}
                 {issue.fields.customfield_10037?.value && (
                   <Badge>
                     {issue.fields.customfield_10037.value}
                   </Badge>
                 )}
               </td>
-              <td className="py-3 px-4 flex items-center gap-2 w-fit">
-                {/* <Badge color={statusColorMap[issue.buildStatus] ?? 'gray'}>
-                  {issue.buildStatus.replace(/-/g, ' ')}
-                </Badge> */}
-
+              <td className="py-3 px-4 flex items-center gap-2">
                 <select
-                  className="form-input"
+                  className="form-input w-full"
                   value={issue.buildStatus}
                   onChange={(e) => handleStatusChange(issue, e.target.value)}
                   disabled={updatingIssue === issue.key || editingIssue !== issue.key}

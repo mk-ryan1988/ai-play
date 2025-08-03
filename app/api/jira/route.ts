@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
       'assignee',
       'customfield_10038', // Tester
       'customfield_10037', // Testing State
+      'customfield_10104' // Release Critical
     ];
 
     const response = await fetch(
