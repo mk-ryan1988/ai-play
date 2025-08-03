@@ -6,6 +6,7 @@ import { useParams } from 'next/navigation';
 import { Issue } from '@/types/jira/issueTypes';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ReleasesStats from '@/components/releases/ReleaseStats';
+import { CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
 import ReleaseChanges from '@/components/releases/ReleaseChanges';
 import ReleaseIssuesList from '@/components/releases/ReleaseIssuesList';
 import { GithubPullRequestData, GitHubResponse, CommitInfo } from '@/types/github/pullRequestTypes';
@@ -47,16 +48,33 @@ export default function ReleasePage() {
     reviewed_at: string;
   }>>([]);
 
+  const getChangesTabStatus = () => {
+    if (!changes) return { icon: null, warning: false };
+    const hasUnlinkedCommits = unlinkedCommits.length > 0;
+    if (!hasUnlinkedCommits) return { icon: <CheckCircleIcon className="w-5 h-5 text-green-500" />, warning: false };
+
+    const allAnnotated = unlinkedCommits.every(({ repo, commit }) =>
+      annotations.some(a => a.repository === repo && a.commit_sha === commit.sha)
+    );
+
+    if (allAnnotated) {
+      return { icon: <CheckCircleIcon className="w-5 h-5 text-green-500" />, warning: false };
+    }
+    return { icon: <ExclamationTriangleIcon className="w-5 h-5 text-red-500" />, warning: true };
+  };
+
+  const changesStatus = getChangesTabStatus();
+
   const tabs = [
     {
       name: 'Overview',
       key: 'overview',
     },
     {
-      name: unlinkedCommits.length > 0
-        ? `Changes (${unlinkedCommits.length})`
-        : 'Changes',
+      name: 'Changes',
       key: 'changes',
+      icon: changesStatus.icon,
+      warning: changesStatus.warning,
     },
   ];
 
@@ -184,17 +202,15 @@ export default function ReleasePage() {
     >
       <div className="flex gap-2">
         {tabs.map((tab) => {
-          const isChangesTab = tab.key === 'changes';
-          const hasUnlinkedCommits = unlinkedCommits.length > 0;
-
           return (
             <button
               key={tab.key}
               className={`${activeTab === tab.key ? 'font-bold' : ''} px-4 py-2 rounded-md`}
               onClick={() => setActiveTab(tab.key)}
             >
-              <span className={isChangesTab && hasUnlinkedCommits ? 'text-red-500' : ''}>
+              <span className={`flex items-center gap-2 ${tab.warning ? 'text-red-500' : ''}`}>
                 {tab.name}
+                {tab.icon}
               </span>
             </button>
           );
