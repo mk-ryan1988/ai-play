@@ -4,12 +4,6 @@ import { ChevronUpIcon } from '@heroicons/react/24/solid';
 import { GithubPullRequestData, CommitInfo } from '@/types/github/pullRequestTypes';
 import CommitRow from './CommitRow';
 
-interface ReleaseChangesProps {
-  changes: GithubPullRequestData | null;
-  unlinkedCommits: Array<{ repo: string; commit: CommitInfo }>;
-  versionId: string;
-}
-
 type Annotation = {
   id: string;
   version_id: string;
@@ -20,9 +14,15 @@ type Annotation = {
   reviewed_at: string;
 };
 
-export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: ReleaseChangesProps) {
+interface ReleaseChangesProps {
+  changes: GithubPullRequestData | null;
+  unlinkedCommits: Array<{ repo: string; commit: CommitInfo }>;
+  versionId: string;
+  annotations: Annotation[];
+}
+
+export default function ReleaseChanges({ changes, unlinkedCommits, versionId, annotations }: ReleaseChangesProps) {
   const [expanded, setExpanded] = useState<string[] | null>(null);
-  const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const handleToggle = (repo: string) => {
     if (expanded && expanded.includes(repo)) {
       setExpanded(expanded.filter((r) => r !== repo));
@@ -99,6 +99,10 @@ export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: 
                           isLast={commitIdx === commits.length - 1}
                           versionId={versionId}
                           repository={repo}
+                          annotation={annotations.find(a =>
+                            a.repository === repo &&
+                            a.commit_sha === commit.sha
+                          )}
                           annotation={annotations.find(a => a.commit_sha === commit.sha)}
                         />
                       ))}

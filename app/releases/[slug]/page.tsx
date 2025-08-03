@@ -37,6 +37,15 @@ export default function ReleasePage() {
   const [changes, setChanges] = useState<GithubPullRequestData | null>(null);
   const [processedIssues, setProcessedIssues] = useState<IssueWithBuildStatus[]>([]);
   const [unlinkedCommits, setUnlinkedCommits] = useState<Array<{ repo: string; commit: CommitInfo }>>([]);
+  const [annotations, setAnnotations] = useState<Array<{
+    id: string;
+    version_id: string;
+    repository: string;
+    commit_sha: string;
+    note: string;
+    reviewed_by: string;
+    reviewed_at: string;
+  }>>([]);
 
   const tabs = [
     {
@@ -95,6 +104,13 @@ export default function ReleasePage() {
             });
           }
         }
+      }
+
+      // Fetch annotations if we have release data
+      if (releaseData?.id) {
+        const annotationsResponse = await fetch(`/api/version-commit-checks?version_id=${releaseData.id}`);
+        const annotationsData = await annotationsResponse.json();
+        setAnnotations(annotationsData.data || []);
       }
 
       // Fetch changes after we have the release data
@@ -212,6 +228,7 @@ export default function ReleasePage() {
             changes={changes}
             unlinkedCommits={unlinkedCommits}
             versionId={release.id}
+            annotations={annotations}
           />}
       </div>
     </PageWrapper>
