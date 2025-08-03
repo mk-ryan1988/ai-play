@@ -211,6 +211,7 @@ export default function ReleasePage() {
           <ReleaseChanges
             changes={changes}
             unlinkedCommits={unlinkedCommits}
+            versionId={release.id}
           />}
       </div>
     </PageWrapper>

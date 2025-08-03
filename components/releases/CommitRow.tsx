@@ -5,14 +5,25 @@ import Card from '../Card';
 import { useDialog } from '@/contexts/DialogContext';
 import CommitAnnotationDialog from './CommitAnnotationDialog';
 
+type Annotation = {
+  id: string;
+  version_id: string;
+  repository: string;
+  commit_sha: string;
+  note: string;
+  reviewed_by: string;
+  reviewed_at: string;
+};
+
 interface CommitRowProps {
   commit: CommitInfo;
   isLast: boolean;
   versionId: string;
   repository: string;
+  annotation?: Annotation;
 }
 
-export default function CommitRow({ commit, isLast, versionId, repository }: CommitRowProps) {
+export default function CommitRow({ commit, isLast, versionId, repository, annotation }: CommitRowProps) {
   const { openDialog } = useDialog();
 
   return (
@@ -30,26 +41,32 @@ export default function CommitRow({ commit, isLast, versionId, repository }: Com
       </div>
       <Card
         className={classNames(
-          "flex w-full justify-between items-center py-3 px-4",
-          commit.untracked ? "border-red-500 border" : ""
+          "flex w-full justify-between items-start py-3 px-4",
+          commit.untracked && !annotation ? "border-red-500 border" : "",
+          annotation ? "border-green-500 border" : ""
         )}
       >
         <div className="text-title flex items-start gap-2">
-          {commit.untracked && (
+          {commit.untracked && !annotation && (
             <ExclamationTriangleIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
           )}
           <div>
             {commit.commit.message}
-            <div className="mt-1 flex gap-x-2">
+            <div className="mt-1 space-y-1">
               <p className="text-xs leading-5 text-label">
                 {commit.commit.author.name} on {new Date(commit.commit.author.date).toLocaleDateString()}
               </p>
+              {annotation && (
+                <p className="text-xs leading-5 text-green-500 bg-green-500/10 px-2 py-1 rounded">
+                  {annotation.note}
+                </p>
+              )}
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          {commit.untracked && (
+          {(commit.untracked || annotation) && (
             <button
               onClick={() => {
                 openDialog({
@@ -57,6 +74,7 @@ export default function CommitRow({ commit, isLast, versionId, repository }: Com
                   content: (
                     <CommitAnnotationDialog
                       commit={commit}
+                      annotation={annotation}
                       onSave={async (note) => {
                         await fetch('/api/version-commit-checks', {
                           method: 'POST',

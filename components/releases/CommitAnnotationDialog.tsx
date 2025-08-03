@@ -1,13 +1,24 @@
 import { useState } from 'react';
 import { CommitInfo } from '@/types/github/pullRequestTypes';
 
+type Annotation = {
+  id: string;
+  version_id: string;
+  repository: string;
+  commit_sha: string;
+  note: string;
+  reviewed_by: string;
+  reviewed_at: string;
+};
+
 interface CommitAnnotationDialogProps {
   commit: CommitInfo;
+  annotation?: Annotation;
   onSave: (note: string) => Promise<void>;
 }
 
-export default function CommitAnnotationDialog({ commit, onSave }: CommitAnnotationDialogProps) {
-  const [note, setNote] = useState('');
+export default function CommitAnnotationDialog({ commit, annotation, onSave }: CommitAnnotationDialogProps) {
+  const [note, setNote] = useState(annotation?.note || '');
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {

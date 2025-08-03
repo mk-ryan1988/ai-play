@@ -10,8 +10,19 @@ interface ReleaseChangesProps {
   versionId: string;
 }
 
+type Annotation = {
+  id: string;
+  version_id: string;
+  repository: string;
+  commit_sha: string;
+  note: string;
+  reviewed_by: string;
+  reviewed_at: string;
+};
+
 export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: ReleaseChangesProps) {
   const [expanded, setExpanded] = useState<string[] | null>(null);
+  const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const handleToggle = (repo: string) => {
     if (expanded && expanded.includes(repo)) {
       setExpanded(expanded.filter((r) => r !== repo));
@@ -25,6 +36,25 @@ export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: 
       setExpanded(Object.keys(changes));
     }
   }, [changes]);
+
+  useEffect(() => {
+    const fetchAnnotations = async () => {
+      try {
+        const response = await fetch(`/api/version-commit-checks?version_id=${versionId}`);
+        const data = await response.json();
+        setAnnotations(data.data || []);
+      } catch (error) {
+        console.error('Error fetching annotations:', error);
+      }
+    };
+
+        console.log('Fetching annotations for versionId:', versionId);
+
+
+    if (versionId) {
+      fetchAnnotations();
+    }
+  }, [versionId]);
 
   if (!changes) {
     return <div>No changes found for this release.</div>;
@@ -69,6 +99,7 @@ export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: 
                           isLast={commitIdx === commits.length - 1}
                           versionId={versionId}
                           repository={repo}
+                          annotation={annotations.find(a => a.commit_sha === commit.sha)}
                         />
                       ))}
                     </ul></>
