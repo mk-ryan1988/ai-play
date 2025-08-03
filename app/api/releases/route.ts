@@ -3,8 +3,10 @@ import { createClient } from '@/lib/supabase/server';
 import { generateSlug } from '@/utils/slugify';
 
 export async function POST(request: Request) {
+  const supabase = createClient();
+  let versionId: string | null = null;
+
   try {
-    const supabase = createClient();
     const {project_name, ...data} = await request.json();
     const slug = generateSlug(project_name, data.name);
 
@@ -19,7 +21,8 @@ export async function POST(request: Request) {
 
     if (statusError || !status) throw statusError;
 
-    const { error } = await supabase
+    // Create version in Supabase
+    const { data: versionData, error: versionError } = await supabase
       .from('versions')
       .insert({
         ...data,
@@ -33,13 +36,77 @@ export async function POST(request: Request) {
       .select()
       .single();
 
-    if (error) throw error;
+    if (versionError) throw versionError;
+    if (!versionData) throw new Error('No version data returned');
+
+    versionId = versionData.id;
+
+    // Create version in Jira
+    const JIRA_URL = process.env.NEXT_PUBLIC_JIRA_URL;
+    const API_TOKEN = process.env.NEXT_PUBLIC_JIRA_API_KEY;
+    const EMAIL = process.env.NEXT_PUBLIC_JIRA_EMAIL;
+    const PROJECT_KEY = process.env.NEXT_PUBLIC_JIRA_PROJECT_KEY;
+    const auth = Buffer.from(`${EMAIL}:${API_TOKEN}`).toString('base64');
+
+    // First, get the project ID using the project key
+    const projectResponse = await fetch(`${JIRA_URL}/rest/api/3/project/${PROJECT_KEY}`, {
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!projectResponse.ok) {
+      console.log(`Jira project error: ${JSON.stringify(await projectResponse.json())}`);
+      throw new Error('Failed to get Jira project');
+    }
+
+    const project = await projectResponse.json();
+
+    // Create the version using the project ID
+    const response = await fetch(`${JIRA_URL}/rest/api/3/version`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: data.name,
+        description: data.description || '',
+        projectId: project.id,
+        released: false,
+        archived: false,
+        releaseDate: data.release_at ? new Date(data.release_at).toISOString().split('T')[0] : null,
+      })
+    });
+
+    if (!response.ok) {
+      console.log(`Jira error: ${JSON.stringify(await response.json())}`);
+
+      // If Jira creation fails, roll back Supabase changes
+      if (versionId) {
+        await supabase
+          .from('versions')
+          .delete()
+          .eq('id', versionId);
+      }
+      throw new Error('Failed to create Jira version');
+    }
 
     return NextResponse.json({ message: 'Release created successfully' });
   } catch (error) {
+    // If we have a version ID and something failed after Supabase insert, clean up
+    if (versionId) {
+      await supabase
+        .from('versions')
+        .delete()
+        .eq('id', versionId);
+    }
+
     console.error('Error creating release:', error);
     return NextResponse.json(
-      { error: 'Failed to create release' },
+      { error: error instanceof Error ? error.message : 'Failed to create release' },
       { status: 500 }
     );
   }
