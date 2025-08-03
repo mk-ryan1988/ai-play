@@ -68,6 +68,7 @@ export default function ReleaseChanges({ changes, unlinkedCommits, versionId }: 
                           commit={commit}
                           isLast={commitIdx === commits.length - 1}
                           versionId={versionId}
+                          repository={repo}
                         />
                       ))}
                     </ul></>

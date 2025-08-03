@@ -9,10 +9,12 @@ interface CommitRowProps {
   commit: CommitInfo;
   isLast: boolean;
   versionId: string;
+  repository: string;
 }
 
-export default function CommitRow({ commit, isLast, versionId }: CommitRowProps) {
+export default function CommitRow({ commit, isLast, versionId, repository }: CommitRowProps) {
   const { openDialog } = useDialog();
+
   return (
     <li className="relative flex gap-x-4">
       <div
@@ -63,7 +65,7 @@ export default function CommitRow({ commit, isLast, versionId }: CommitRowProps)
                           },
                           body: JSON.stringify({
                             version_id: versionId,
-                            repository: commit.repository,
+                            repository,
                             commit_sha: commit.sha,
                             note,
                           }),

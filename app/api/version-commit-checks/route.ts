@@ -14,7 +14,7 @@ export async function POST(request: Request) {
     }
 
     const { data, error } = await supabase
-      .from('unlinked_commits')
+      .from('version_commit_checks')
       .upsert({
         version_id,
         repository,
@@ -40,13 +40,13 @@ export async function GET(request: Request) {
     const supabase = createRouteHandlerClient({ cookies });
     const { searchParams } = new URL(request.url);
     const version_id = searchParams.get('version_id');
-    
+
     if (!version_id) {
       return NextResponse.json({ error: 'Version ID is required' }, { status: 400 });
     }
 
     const { data, error } = await supabase
-      .from('unlinked_commits')
+      .from('version_commit_checks')
       .select('*')
       .eq('version_id', version_id);
 
