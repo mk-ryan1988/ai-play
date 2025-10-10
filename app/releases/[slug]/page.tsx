@@ -13,6 +13,7 @@ import { GithubPullRequestData, GitHubResponse, CommitInfo } from '@/types/githu
 import { determineIssuesBuildStatus } from '@/utils/buildStatus';
 import { IssueWithBuildStatus } from '@/types/buildStatus';
 import { Database } from '@/types/supabase';
+import Badge from '@/components/ui/Badge';
 
 type VersionIssue = Database['public']['Tables']['version_issues']['Row'];
 
@@ -221,17 +222,25 @@ export default function ReleasePage() {
         {activeTab === 'overview' && (
           <>
             <Card className="rounded-b-none">
-              <span className="text-title font-semibold">{release.projects.name}</span>
-              <span className="text-subtitle">/</span>
-              <span className="text-title font-semibold">{release.name}</span>
-              <p className="w-full mt-2 mb-3">{release.description}</p>
-              <div className="flex gap-2">
-                <span className="text-subtitle">Status:</span>
-                <span className="text-title font-semibold">{release.status}</span>
+              <div className='flex gap-4 justify-between items-start'>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-title font-semibold">{release.projects.name}</span>
+                    <span className="text-subtitle">/</span>
+                    <span className="text-title font-semibold">{release.name}</span>
+                  </div>
+                  <p className="w-full mt-2 mb-3">{release.description}</p>
+                </div>
+                <Badge
+                  color={release.status === 'released' ? 'green' : 'yellow'}
+                  size="medium"
+                >
+                  {release.status}
+                </Badge>
               </div>
             </Card>
 
-            <ReleasesStats />
+            <ReleasesStats issues={processedIssues} />
 
             <div className="mt-4 p-4">
               <ReleaseIssuesList issues={processedIssues} versionId={release.id} onStatusUpdate={() => fetchData()} />

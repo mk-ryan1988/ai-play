@@ -2,7 +2,8 @@ import { classNames } from "@/utils/classNames";
 
 interface BadgeProps {
   children: React.ReactNode;
-  color?: 'blue-gray' | 'yellow' | 'green' | 'default'
+  color?: 'blue-gray' | 'yellow' | 'green' | 'default';
+  size?: 'small' | 'medium' | 'large';
 }
 
 export default function Badge({ children, ...props }: BadgeProps) {
@@ -36,7 +37,11 @@ export default function Badge({ children, ...props }: BadgeProps) {
     <span
       className={classNames(
         getDarkColorClasses(),
-        'inline-flex items-center rounded-md  px-2 py-1 text-xs font-medium ring-1 ring-inset',
+        'inline-flex items-center rounded-md ring-1 ring-inset',
+        props.size === 'large' ? 'px-3 py-1.5 text-sm' :
+        props.size === 'medium' ? 'px-2.5 py-1 text-xs' :
+        'px-2 py-0.5 text-xs', // small (default)
+        'font-medium',
       )}
     >
       {children}

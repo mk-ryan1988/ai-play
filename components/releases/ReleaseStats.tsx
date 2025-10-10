@@ -1,22 +1,40 @@
 
-export default function ReleasesStats() {
+import { IssueWithBuildStatus } from '@/types/buildStatus';
 
-  const Stats: { title: string; stats: string }[] = [
+interface ReleasesStatsProps {
+  issues: IssueWithBuildStatus[];
+}
+
+export default function ReleasesStats({ issues }: ReleasesStatsProps) {
+  // Calculate statistics
+  const totalIssues = issues.length;
+  const issuesInBuild = issues.filter(issue => issue.buildStatus === 'in-build').length;
+  const issuesTested = issues.filter(issue => 
+    issue.fields.status.statusCategory.colorName === 'green'
+  ).length;
+  const issuesInTesting = issues.filter(issue => 
+    issue.fields.status.statusCategory.colorName === 'yellow'
+  ).length;
+
+  const buildPercentage = totalIssues > 0 ? Math.round((issuesInBuild / totalIssues) * 100) : 0;
+  const testProgress = totalIssues > 0 ? Math.round(((issuesTested + (issuesInTesting * 0.5)) / totalIssues) * 100) : 0;
+
+  const Stats = [
     {
-      title: 'Number of Issues',
-      stats: '15',
+      title: 'Total Issues',
+      stats: totalIssues.toString(),
     },
     {
-      title: 'Number of Issues Tested',
-      stats: '10',
+      title: 'Build Coverage',
+      stats: `${buildPercentage}%`,
     },
     {
-      title: 'Number of Push Backs',
-      stats: '3',
+      title: 'Testing Progress',
+      stats: `${testProgress}%`,
     },
     {
-      title: 'Pass Percentage',
-      stats: '90%',
+      title: 'Ready for Release',
+      stats: issuesTested.toString(),
     },
   ];
 
