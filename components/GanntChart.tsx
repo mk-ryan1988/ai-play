@@ -65,7 +65,7 @@ const calculateLeftOffsetPercentage = (start: string, firstDate: string, totalDa
   return (offset / totalDays) * 100;
 };
 
-const Tooltip = ({ title, x, y }: { title: string, x: number, y: number }) => (
+const Tooltip = ({ title, x }: { title: string, x: number, y: number }) => (
   <div
     style={{
       position: 'absolute',
@@ -85,6 +85,7 @@ const Tooltip = ({ title, x, y }: { title: string, x: number, y: number }) => (
 
 const GanttChart = ({ releases = [] }: Props) => {
   const [monthOffset, setMonthOffset] = useState(0);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [tooltip, setTooltip] = useState({ visible: false, title: '', x: 0, y: 0 });
 
   // Get current date and generate 3 months before and after

@@ -106,7 +106,7 @@ const PromptCarousel = () => {
             paddingRight: 'calc(2rem + 10%)'
           }}
         >
-          {suggestedPrompts.map((prompt, index) => (
+          {suggestedPrompts.map((prompt) => (
             <div
               key={prompt.id}
               className="carousel-card flex-none w-[85%] md:w-[45%] snap-start p-6 bg-dark-secondary
@@ -141,8 +141,10 @@ const PromptCarousel = () => {
       <Dialog
         isOpen={dialogOpen}
         onClose={() => setDialogOpen(false)}
-        type={selectedType}
-      />
+        title={selectedType}
+      >
+        <p>Content for {selectedType}</p>
+      </Dialog>
     </div>
   );
 };

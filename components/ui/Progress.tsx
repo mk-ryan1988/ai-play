@@ -1,3 +1,4 @@
+import { classNames } from "@/utils/classNames";
 
 export default function Progress({ total, done }: { total: number, done: number }) {
   const outstandingCount = total - done;

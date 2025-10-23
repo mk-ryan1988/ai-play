@@ -7,19 +7,6 @@ interface BadgeProps {
 }
 
 export default function Badge({ children, ...props }: BadgeProps) {
-  const getColorClasses = () => {
-    switch (props.color) {
-      case 'blue-gray':
-        return 'bg-gray-50 ring-gray-500/10 text-gray-600';
-      case 'green':
-        return 'bg-green-50 ring-green-500/10 text-green-600';
-      case 'yellow':
-        return 'bg-blue-50 ring-blue-500/10 text-blue-600';
-      default:
-        return 'bg-gray-50 ring-gray-500/10 text-gray-600';
-    }
-  };
-
   const getDarkColorClasses = () => {
     switch (props.color) {
       case 'blue-gray':

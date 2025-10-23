@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { HomeIcon, RocketLaunchIcon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon, FolderIcon } from '@heroicons/react/24/solid';
+import { HomeIcon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
 import Card from '../Card';
 
 export default function Sidenav({ isCollapsed, setIsCollapsed }) {
@@ -39,8 +39,6 @@ export default function Sidenav({ isCollapsed, setIsCollapsed }) {
 
   const menuItems = [
     { name: 'Home', path: '/', icon: HomeIcon },
-    { name: 'Projects', path: '/projects', icon: FolderIcon },
-    { name: 'Releases', path: '/releases', icon: RocketLaunchIcon },
     { name: 'Settings', path: '/settings', icon: Cog6ToothIcon },
   ];
 

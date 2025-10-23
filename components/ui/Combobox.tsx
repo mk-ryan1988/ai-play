@@ -1,5 +1,5 @@
 import { Combobox as HeadlessCombobox, ComboboxButton, ComboboxInput, ComboboxOption, ComboboxOptions } from '@headlessui/react';
-import { CheckIcon, ChevronDownIcon } from '@heroicons/react/20/solid';
+import { ChevronDownIcon } from '@heroicons/react/20/solid';
 import clsx from 'clsx';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';

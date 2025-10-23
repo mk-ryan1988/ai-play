@@ -1,11 +1,17 @@
 import { useState } from 'react';
 import { Field, Label, Switch } from '@headlessui/react';
 
+interface ToggleProps {
+  label: string;
+  value?: boolean;
+  onChange?: (value: boolean) => void;
+}
+
 export default function Toggle({
   label,
   value,
   onChange,
-}) {
+}: ToggleProps) {
   const [enabled, setEnabled] = useState(value || false);
 
   const handleChange = () => {

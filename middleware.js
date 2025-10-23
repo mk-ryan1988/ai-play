@@ -10,11 +10,12 @@ export async function middleware(req) {
   } = await supabase.auth.getSession()
 
   // If there's no session and the user is trying to access a protected route
-  if (!session && req.nextUrl.pathname.startsWith('/releases')) {
-    const redirectUrl = req.nextUrl.clone()
-    redirectUrl.pathname = '/login'
-    return NextResponse.redirect(redirectUrl)
-  }
+  // Add protected routes here as needed
+  // Example: if (!session && req.nextUrl.pathname.startsWith('/protected')) {
+  //   const redirectUrl = req.nextUrl.clone()
+  //   redirectUrl.pathname = '/login'
+  //   return NextResponse.redirect(redirectUrl)
+  // }
 
   return res
 }

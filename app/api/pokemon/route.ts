@@ -22,6 +22,6 @@ export async function GET(request: Request) {
     };
     return NextResponse.json(pokemon);
   } catch (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'An error occurred' }, { status: 500 });
   }
 }
