@@ -242,6 +242,17 @@
   @apply bg-transparent
 }
 
+/* Sidebar Styles */
+@layer sidebar {
+  .sidebar-hidden {
+    transform: translateX(calc(-100% - 8px));
+  }
+
+  .sidebar-visible {
+    transform: translateX(0);
+  }
+}
+
 /* Sidebar Toggle Styles */
 @layer tree-toggle {
   .tree-toggle {

@@ -53,8 +53,11 @@ export default function Sidenav({ isCollapsed, setIsCollapsed }) {
   return (
     <div
       className={`
-        relative h-[calc(100vh-3rem)] m-4 transition-all duration-300 ease-in-out p-4
-        ${menuWidth()}
+        fixed left-0 top-0 h-[calc(100vh-2rem)] mt-4 ml-4 z-10
+        transition-all duration-300 ease-in-out p-4
+        bg-secondary border border-tertiary rounded-lg
+        w-64
+        ${isCollapsed ? 'sidebar-hidden' : 'sidebar-visible'}
       `}
     >
       {/* Menu content */}

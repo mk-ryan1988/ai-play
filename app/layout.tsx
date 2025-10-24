@@ -39,6 +39,7 @@ export default function RootLayout({
                 bg-secondary border border-tertiary rounded-lg p-4
                 ${isCollapsed && isMobile ? 'blur-sm' : ''}
                 ${isGuestRoute ? 'ml-4' : ''}
+                ${!isGuestRoute && !isCollapsed ? 'ml-[288px]' : 'ml-4'}
               `}>
                 {/* Cool toggle button */}
                 <div className={`absolute top-2 left-2`}>
