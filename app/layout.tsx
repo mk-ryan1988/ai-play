@@ -19,7 +19,7 @@ export default function RootLayout({
   const pathname = usePathname();
   const { isMobile } = useWindowWidth();
 
-  const isGuestRoute = guestRoutes.includes(pathname)
+  const isGuestRoute = guestRoutes.includes(pathname);
 
   return (
     <html lang="en">
@@ -41,11 +41,19 @@ export default function RootLayout({
                 ${!isGuestRoute && !isCollapsed ? 'ml-[288px]' : 'ml-4'}
               `}>
                 {/* Cool toggle button */}
-                <div className={`absolute top-2 left-2`}>
-                  <SidebarToggle
-                    isOpen={!isCollapsed}
-                    onClick={() => setIsCollapsed(!isCollapsed)}
-                  />
+                <div
+                  className={`absolute top-2 left-2`}
+                  onMouseEnter={() => isCollapsed && setIsHovering(true)}
+                  onMouseLeave={() => setIsHovering(false)}
+                >
+                  <div
+                      popoverTarget="sidebar"
+                  >
+                    <SidebarToggle
+                      isOpen={!isCollapsed}
+                      onClick={() => setIsCollapsed(!isCollapsed)}
+                    />
+                  </div>
                 </div>
 
                 {children}

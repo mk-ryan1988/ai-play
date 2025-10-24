@@ -1,45 +1,15 @@
 'use client'
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
-import { HomeIcon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
-import Card from '../Card';
+import { usePathname } from 'next/navigation';
+import { HomeIcon, PaintBrushIcon } from '@heroicons/react/24/solid';
 
 export default function Sidenav({ isCollapsed }) {
-  const router = useRouter();
   const pathname = usePathname();
-  const [organisation, setOrganisation] = useState(null);
-
-  const fetchOrganisation = async () => {
-    try {
-      // fetch the organisation from the api route
-      const response = await fetch('/api/organisation');
-      const data = await response.json();
-      setOrganisation(data.organisation);
-    } catch (err) {
-      console.error('Error in fetchOrganisation:', err);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrganisation();
-  }, []);
-
-  const handleLogout = async () => {
-    const {
-      error
-    } = await supabase.auth.signOut();
-
-    if (!error) {
-      router.refresh();
-      router.push('/login');
-    }
-  };
 
   const menuItems = [
     { name: 'Home', path: '/', icon: HomeIcon },
-    { name: 'Settings', path: '/settings', icon: Cog6ToothIcon },
+    { name: 'Design', path: '/design', icon: PaintBrushIcon },
   ];
 
   return (
@@ -53,14 +23,7 @@ export default function Sidenav({ isCollapsed }) {
       `}
     >
       {/* Menu content */}
-      <nav className="mt-8 h-full flex flex-col">
-
-        {organisation && (
-          <Card className="mb-4 p-2">
-            <h1>{organisation.name}</h1>
-          </Card>
-        )}
-
+      <nav className="h-full flex flex-col">
         <div className="flex-1">
           <div className="space-y-4 text-gray-300">
             {menuItems.map((item) => (
@@ -79,18 +42,6 @@ export default function Sidenav({ isCollapsed }) {
             ))}
           </div>
         </div>
-
-        <button
-          onClick={handleLogout}
-          className={`
-            flex items-center gap-3 p-2 rounded-lg transition-colors text-label
-            hover:text-title hover:bg-tertiary
-            ${isCollapsed ? 'justify-center' : ''}
-          `}
-        >
-          <ArrowRightEndOnRectangleIcon className="w-5 h-5" />
-          {!isCollapsed && <span>Logout</span>}
-        </button>
       </nav>
     </div>
   )
