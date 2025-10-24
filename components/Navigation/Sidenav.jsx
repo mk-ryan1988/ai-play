@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { HomeIcon, Cog6ToothIcon, ArrowRightEndOnRectangleIcon } from '@heroicons/react/24/solid';
 import Card from '../Card';
 
-export default function Sidenav({ isCollapsed, setIsCollapsed }) {
+export default function Sidenav({ isCollapsed }) {
   const router = useRouter();
   const pathname = usePathname();
   const [organisation, setOrganisation] = useState(null);
@@ -41,14 +41,6 @@ export default function Sidenav({ isCollapsed, setIsCollapsed }) {
     { name: 'Home', path: '/', icon: HomeIcon },
     { name: 'Settings', path: '/settings', icon: Cog6ToothIcon },
   ];
-
-  const menuWidth = () => {
-    if (isCollapsed) {
-      return 'w-16';
-    } else {
-      return 'w-64';
-    }
-  };
 
   return (
     <div

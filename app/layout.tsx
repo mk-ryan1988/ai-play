@@ -30,7 +30,6 @@ export default function RootLayout({
               {/* Side Menu */}
               {!isGuestRoute && <Sidenav
                 isCollapsed={isCollapsed}
-                setIsCollapsed={setIsCollapsed}
               />}
 
               {/* Main Content */}
