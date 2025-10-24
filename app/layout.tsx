@@ -8,6 +8,7 @@ import { useWindowWidth } from '../hooks/useWindowWidth';
 import Sidenav from '@/components/Navigation/Sidenav';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { DialogProvider } from "@/contexts/DialogContext";
+import SidebarToggle from "@/components/Navigation/SidebarToggle";
 
 export default function RootLayout({
   children,
@@ -34,11 +35,19 @@ export default function RootLayout({
 
               {/* Main Content */}
               <main className={`
-                flex-1 transition-all duration-300 my-4 mr-4
+                relative flex-1 transition-all duration-300 my-4 mr-4
                 bg-secondary border border-tertiary rounded-lg p-4
                 ${isCollapsed && isMobile ? 'blur-sm' : ''}
                 ${isGuestRoute ? 'ml-4' : ''}
               `}>
+                {/* Cool toggle button */}
+                <div className={`absolute top-2 left-2`}>
+                  <SidebarToggle
+                    isOpen={!isCollapsed}
+                    onClick={() => setIsCollapsed(!isCollapsed)}
+                  />
+                </div>
+
                 {children}
               </main>
             </div>

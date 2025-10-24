@@ -57,16 +57,6 @@ export default function Sidenav({ isCollapsed, setIsCollapsed }) {
         ${menuWidth()}
       `}
     >
-      <button
-        onClick={() => setIsCollapsed(!isCollapsed)}
-        className={`
-          absolute right-2 top-2 p-2 rounded hover:bg-tertiary text-label hover:text-title
-          ${isCollapsed ? 'left-2' : 'right-2'}
-        `}
-      >
-        {isCollapsed ? '→' : '←'}
-      </button>
-
       {/* Menu content */}
       <nav className="mt-8 h-full flex flex-col">
 

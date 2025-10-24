@@ -241,3 +241,102 @@
 .form-input:disabled {
   @apply bg-transparent
 }
+
+/* Sidebar Toggle Styles */
+@layer tree-toggle {
+  .tree-toggle {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    border-radius: 8px;
+    border-width: 0px;
+    background: #0000;
+    cursor: pointer;
+    outline-color: theme('colors.red.500');
+    color: var(--text-label);
+  }
+
+  .tree-toggle:hover {
+    color: var(--text-title);
+  }
+
+  .tree-toggle::after {
+    content: '';
+    background: theme('colors.tertiary');
+    opacity: 0;
+    position: absolute;
+    inset: 8px;
+    pointer-events: none;
+    border-radius: 8px;
+    transition: opacity 0.12s ease-out;
+  }
+
+  .tree-toggle .icon-bar {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    scale: 0.3 1;
+    transition: scale 0.16s cubic-bezier(0.0, 0.0, 0.58, 1.0);
+  }
+
+  .tree-toggle[aria-expanded="true"] .icon-bar {
+    scale: 1 1;
+  }
+
+  .tree-toggle:hover .icon-bar {
+    scale: 1 1;
+  }
+
+  .tree-toggle[aria-expanded="true"]:hover .icon-bar {
+    scale: 0.3 1;
+  }
+
+  .tree-toggle svg {
+    width: 22px;
+  }
+
+  /* Safety triangle and hover set */
+  .tree-toggle .hover-set,
+  .tree-toggle .safety-triangle {
+    transition: scale 0.16s 0.16s cubic-bezier(0.0, 0.0, 0.58, 1.0);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .tree-toggle .hover-set {
+    pointer-events: all;
+  }
+
+  .tree-toggle:hover .safety-triangle {
+    pointer-events: all;
+  }
+
+  .tree-toggle[aria-expanded="true"] .hover-set,
+  .tree-toggle[aria-expanded="true"] .safety-triangle {
+    scale: 0;
+    transition-delay: 0s;
+  }
+
+  .tree-toggle .safety-triangle {
+    display: inline-block;
+    width: 260px;
+    top: 0;
+    bottom: 0;
+    background: repeating-linear-gradient(45deg, #0000 0 4px, theme('colors.red.500') 4px 5px);
+    position: absolute;
+    left: 0;
+    transform-origin: calc(0.5rem + 22px) 50%;
+    translate: -0.5rem 0;
+    clip-path: polygon(0 100%, 0.5rem 0, calc(0.5rem + 44px) 0, 100% 100%);
+    z-index: 2;
+    opacity: 0;
+  }
+
+  .tree-toggle .hover-set {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: repeating-linear-gradient(45deg, #000 0 4px, hsl(140 80% 50%) 4px 5px);
+  }
+}
