@@ -8,6 +8,7 @@ import { useWindowWidth } from '../hooks/useWindowWidth';
 import Sidenav from '@/components/Navigation/Sidenav';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { DialogProvider } from "@/contexts/DialogContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import SidebarToggle from "@/components/Navigation/SidebarToggle";
 
 export default function RootLayout({
@@ -24,43 +25,43 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <OrganizationProvider>
-          <DialogProvider>
-            <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
-              {/* Side Menu */}
-              {!isGuestRoute && <Sidenav
-                isCollapsed={isCollapsed}
-              />}
+        <ThemeProvider autoLoad={true}>
+          <OrganizationProvider>
+            <DialogProvider>
+              <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
+                {/* Side Menu */}
+                {!isGuestRoute && <Sidenav
+                  isCollapsed={isCollapsed}
+                />}
 
-              {/* Main Content */}
-              <main className={`
-                relative flex-1 transition-all duration-300 my-4 mr-4
-                bg-secondary border border-tertiary rounded-lg p-4
-                ${isCollapsed && isMobile ? 'blur-sm' : ''}
-                ${isGuestRoute ? 'ml-4' : ''}
-                ${!isGuestRoute && !isCollapsed ? 'ml-[288px]' : 'ml-4'}
-              `}>
-                {/* Cool toggle button */}
-                <div
-                  className={`absolute top-2 left-2`}
-                  onMouseEnter={() => isCollapsed && setIsHovering(true)}
-                  onMouseLeave={() => setIsHovering(false)}
-                >
+                {/* Main Content */}
+                <main className={`
+                  relative flex-1 transition-all duration-300 my-4 mr-4
+                  bg-secondary border border-tertiary rounded-lg p-4
+                  ${isCollapsed && isMobile ? 'blur-sm' : ''}
+                  ${isGuestRoute ? 'ml-4' : ''}
+                  ${!isGuestRoute && !isCollapsed ? 'ml-[288px]' : 'ml-4'}
+                `}>
+                  {/* Cool toggle button */}
                   <div
-                      popoverTarget="sidebar"
+                    className={`absolute top-2 left-2`}
                   >
-                    <SidebarToggle
-                      isOpen={!isCollapsed}
-                      onClick={() => setIsCollapsed(!isCollapsed)}
-                    />
+                    <div
+                        popoverTarget="sidebar"
+                    >
+                      <SidebarToggle
+                        isOpen={!isCollapsed}
+                        onClick={() => setIsCollapsed(!isCollapsed)}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                {children}
-              </main>
-            </div>
-          </DialogProvider>
-        </OrganizationProvider>
+                  {children}
+                </main>
+              </div>
+            </DialogProvider>
+          </OrganizationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
