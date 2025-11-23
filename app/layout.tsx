@@ -10,6 +10,7 @@ import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { DialogProvider } from "@/contexts/DialogContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import SidebarToggle from "@/components/Navigation/SidebarToggle";
+import { themePropertyMap } from "@/utils/theme";
 
 export default function RootLayout({
   children,
@@ -24,6 +25,56 @@ export default function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        {/* Inline script to prevent theme flicker - loads theme before React hydration */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = JSON.parse(localStorage.getItem('app-theme') || '{}');
+                  var root = document.documentElement;
+
+                  // CSS variable mapping (generated from theme.ts)
+                  var map = ${JSON.stringify(themePropertyMap)};
+
+                  // Apply colors
+                  if (theme.colors) {
+                    for (var key in theme.colors) {
+                      var cssVar = map['colors.' + key];
+                      if (cssVar && theme.colors[key]) {
+                        root.style.setProperty(cssVar, theme.colors[key]);
+                      }
+                    }
+                  }
+
+                  // Apply border radius
+                  if (theme.borderRadius) {
+                    for (var key in theme.borderRadius) {
+                      var cssVar = map['borderRadius.' + key];
+                      if (cssVar && theme.borderRadius[key]) {
+                        root.style.setProperty(cssVar, theme.borderRadius[key]);
+                      }
+                    }
+                  }
+
+                  // Apply shadows
+                  if (theme.shadows) {
+                    for (var key in theme.shadows) {
+                      var cssVar = map['shadows.' + key];
+                      if (cssVar && theme.shadows[key]) {
+                        root.style.setProperty(cssVar, theme.shadows[key]);
+                      }
+                    }
+                  }
+                } catch (e) {
+                  // Fail silently - default theme will be used
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body className={`antialiased`}>
         <ThemeProvider autoLoad={true}>
           <OrganizationProvider>

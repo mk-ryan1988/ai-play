@@ -57,7 +57,7 @@ export interface Theme {
 }
 
 // Map theme object keys to CSS variable names
-const themePropertyMap: Record<string, string> = {
+export const themePropertyMap: Record<string, string> = {
   // Colors
   'colors.primary': '--color-primary',
   'colors.secondary': '--color-secondary',
