@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { HomeIcon, PaintBrushIcon } from '@heroicons/react/24/solid';
+import { HomeIcon, PaintBrushIcon, ChatBubbleLeftRightIcon } from '@heroicons/react/24/solid';
 
 export default function Sidenav({ isCollapsed }) {
   const pathname = usePathname();
 
   const menuItems = [
     { name: 'Home', path: '/', icon: HomeIcon },
+    { name: 'Chat', path: '/chat', icon: ChatBubbleLeftRightIcon },
     { name: 'Design', path: '/design', icon: PaintBrushIcon },
   ];
 
