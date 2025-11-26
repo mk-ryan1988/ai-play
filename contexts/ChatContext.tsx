@@ -27,6 +27,7 @@ export interface Message {
 interface ChatContextType {
   messages: Message[];
   isGenerating: boolean;
+  isUpdatingTheme: boolean;
   sendMessage: (content: string) => Promise<void>;
   clearMessages: () => void;
 }
@@ -38,6 +39,7 @@ const STORAGE_KEY = 'chat-messages';
 export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
   const themeContext = useThemeOptional();
 
   // Load messages from localStorage on mount
@@ -114,10 +116,13 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       // If there's a theme update action, apply it
       if (data.action?.type === 'updateTheme' && data.action.result.success) {
+        setIsUpdatingTheme(true); // Show shimmer overlay during theme update
         if (themeContext && data.action.result.theme) {
           themeContext.updateTheme(data.action.result.theme);
           themeContext.saveTheme(); // Save to localStorage
         }
+        // Brief delay to let the shimmer effect be visible
+        setTimeout(() => setIsUpdatingTheme(false), 500);
       }
 
       // Add assistant message with action metadata
@@ -157,6 +162,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       value={{
         messages,
         isGenerating,
+        isUpdatingTheme,
         sendMessage,
         clearMessages,
       }}

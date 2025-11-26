@@ -7,11 +7,11 @@ import ShimmerOverlay from '@/components/ui/ShimmerOverlay';
 import { useChat } from '@/contexts/ChatContext';
 
 function ChatContent() {
-  const { messages, isGenerating } = useChat();
+  const { messages, isUpdatingTheme } = useChat();
 
   return (
     <>
-      <ShimmerOverlay isVisible={isGenerating} />
+      <ShimmerOverlay isVisible={isUpdatingTheme} />
       <div className="flex flex-col h-[calc(100vh-2rem)] w-full">
         {/* Messages area */}
         <div className="flex-1 overflow-hidden">
