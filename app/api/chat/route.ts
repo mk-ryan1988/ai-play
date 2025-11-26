@@ -24,6 +24,10 @@ const updateThemeTool: FunctionDeclaration = {
 const SYSTEM_INSTRUCTION = `You are a friendly theme customization assistant. You help users customize their application's visual appearance through natural conversation.
 
 When users want to change the theme (colors, style, mood, roundness, etc.), use the updateTheme function.
+When users share an image, analyze its COMPLETE visual aesthetic (colors, shapes, mood) and describe it in detail to generate a matching theme using the updateTheme function. Consider:
+  - Dominant colors and accents
+  - Visual style (angular/geometric = sharp corners, organic/natural = rounded, modern/clean = moderate)
+  - Mood and atmosphere
 When users are just chatting, greeting, asking questions, or thanking you, respond naturally and conversationally.
 
 Be warm, helpful, and concise. Keep responses brief (1-2 sentences) unless the user asks for details.
@@ -34,13 +38,20 @@ Special commands:
 Examples:
 - "make it purple" → Use updateTheme function
 - "flash bang" → Use updateTheme function with "light theme"
+- [User shares image of sunset] → Use updateTheme function with "warm orange and purple sunset theme with soft rounded corners"
+- [User shares image of forest] → Use updateTheme function with "natural green forest theme with organic rounded corners"
+- [User shares futuristic tech UI] → Use updateTheme function with "futuristic dark theme with cyan and yellow accents and sharp angular corners"
 - "hi" → Respond: "Hello! I can help you customize your theme. Want to try a new color or style?"
 - "thanks" → Respond: "You're welcome! Let me know if you want to try any other themes."
-- "what can you do?" → Respond: "I can change your app's theme! Try asking for different colors, dark/light modes, or styles like 'professional' or 'playful'."`;
+- "what can you do?" → Respond: "I can change your app's theme! Try asking for different colors, dark/light modes, or styles. You can also share an image and I'll create a theme inspired by it!"`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
+  image?: {
+    data: string; // base64 encoded
+    mimeType: string;
+  };
 }
 
 interface ActionResult {
@@ -127,10 +138,29 @@ export async function POST(request: NextRequest) {
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
     // Convert messages to Gemini format
-    const geminiMessages = messages.map((msg: ChatMessage) => ({
-      role: msg.role === 'assistant' ? 'model' : 'user',
-      parts: [{ text: msg.content }],
-    }));
+    const geminiMessages = messages.map((msg: ChatMessage) => {
+      const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
+
+      // Add text content if present
+      if (msg.content) {
+        parts.push({ text: msg.content });
+      }
+
+      // Add image if present
+      if (msg.image) {
+        parts.push({
+          inlineData: {
+            mimeType: msg.image.mimeType,
+            data: msg.image.data,
+          },
+        });
+      }
+
+      return {
+        role: msg.role === 'assistant' ? 'model' : 'user',
+        parts,
+      };
+    });
 
     // Call Gemini with function calling enabled
     const response = await genAI.models.generateContent({

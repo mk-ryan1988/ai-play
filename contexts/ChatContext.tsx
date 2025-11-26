@@ -22,13 +22,17 @@ export interface Message {
   content: string;
   timestamp: Date;
   action?: ActionMetadata;
+  image?: {
+    data: string; // base64 encoded image
+    mimeType: string; // e.g., "image/jpeg", "image/png"
+  };
 }
 
 interface ChatContextType {
   messages: Message[];
   isGenerating: boolean;
   isUpdatingTheme: boolean;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, image?: { data: string; mimeType: string }) => Promise<void>;
   clearMessages: () => void;
 }
 
@@ -69,13 +73,14 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, [messages]);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, image?: { data: string; mimeType: string }) => {
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
       content,
       timestamp: new Date(),
+      ...(image && { image }),
     };
 
     setMessages((prev) => [...prev, userMessage]);
@@ -89,6 +94,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const messageHistory = [...messages, userMessage].map(msg => ({
         role: msg.role,
         content: msg.content,
+        ...(msg.image && { image: msg.image }),
       }));
 
       // Call the new chat API

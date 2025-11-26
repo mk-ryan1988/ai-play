@@ -287,6 +287,8 @@ export function applySavedTheme(key: string = 'app-theme'): boolean {
  */
 export const THEME_SYSTEM_PROMPT = `You are a theme generation assistant. Based on user requests, you generate theme configurations for a web application.
 
+CRITICAL: Your response must be ONLY valid, complete JSON - no explanations, no other text before or after. Start with { and end with }.
+
 Available CSS Variables:
 - Colors:
   - primary, secondary, tertiary (surface/background colors)
@@ -348,12 +350,27 @@ Guidelines:
 - For "rounded" requests, use larger radius values (0.5rem - 1rem)
 - Only include properties that need to change; omit unchanged properties
 
+Image Analysis Guidelines:
+When analyzing an image to generate a theme, consider the COMPLETE visual aesthetic:
+- Colors: Extract dominant colors, accent colors, and background tones
+- Border Radius: Match the visual style
+  * Angular/geometric/tech/futuristic imagery → sharp corners (0 or minimal radius)
+  * Organic/natural/friendly imagery → rounded corners (0.5rem - 1rem)
+  * Modern/clean UI → moderate rounds (0.25rem - 0.5rem)
+- Shadows: Match the mood
+  * Dramatic/bold imagery → stronger shadows
+  * Soft/minimal imagery → subtle or no shadows
+- Always include borderRadius when analyzing images - it's a key part of the aesthetic!
+
 Examples:
 Request: "Make it purple, square, and light mode"
 Response: {"colors":{"accent":"#9333ea","accentHover":"#7e22ce","accentText":"#ffffff","primary":"#f5f5f5","secondary":"#fafafa","tertiary":"#ffffff","textTitle":"#171717","textSubtitle":"#404040","textBody":"#525252","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.125rem","2xl":"0.25rem"}}
 
 Request: "Dark mode with blue accents and rounded corners"
-Response: {"colors":{"accent":"#3b82f6","accentHover":"#2563eb","accentText":"#ffffff","primary":"#0a0a0a","secondary":"#171717","tertiary":"#262626","textTitle":"#ffffff","textSubtitle":"#e5e5e5","textBody":"#d4d4d4","textLabel":"#a3a3a3"},"borderRadius":{"sm":"0.375rem","md":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem"}}`;
+Response: {"colors":{"accent":"#3b82f6","accentHover":"#2563eb","accentText":"#ffffff","primary":"#0a0a0a","secondary":"#171717","tertiary":"#262626","textTitle":"#ffffff","textSubtitle":"#e5e5e5","textBody":"#d4d4d4","textLabel":"#a3a3a3"},"borderRadius":{"sm":"0.375rem","md":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem"}}
+
+Request: [Image of futuristic UI with cyan and yellow tech elements]
+Response: {"colors":{"accent":"#06b6d4","accentHover":"#0891b2","accentText":"#000000","primary":"#0a0a0a","secondary":"#171717","tertiary":"#1f1f1f","textTitle":"#06b6d4","textSubtitle":"#d4d4d4","textBody":"#a3a3a3","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.25rem","2xl":"0.375rem"}}`;
 
 /**
  * Parse LLM response into a Theme object
@@ -362,14 +379,28 @@ Response: {"colors":{"accent":"#3b82f6","accentHover":"#2563eb","accentText":"#f
  */
 export function parseThemeResponse(response: string): Theme | null {
   try {
+    // Remove markdown code blocks if present
+    let cleaned = response.replace(/```json\s*/g, '').replace(/```\s*/g, '');
+
     // Extract JSON from response (in case LLM includes explanation text)
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
+    const jsonMatch = cleaned.match(/\{[\s\S]*?\}(?=\s*$|$)/);
     if (!jsonMatch) {
       console.error('No JSON found in response');
+      console.error('Response:', response.substring(0, 500));
       return null;
     }
 
-    const parsed = JSON.parse(jsonMatch[0]) as Theme;
+    let jsonStr = jsonMatch[0];
+
+    // Try to fix incomplete JSON (missing closing braces)
+    const openBraces = (jsonStr.match(/\{/g) || []).length;
+    const closeBraces = (jsonStr.match(/\}/g) || []).length;
+    if (openBraces > closeBraces) {
+      console.log('Attempting to fix incomplete JSON...');
+      jsonStr += '}'.repeat(openBraces - closeBraces);
+    }
+
+    const parsed = JSON.parse(jsonStr) as Theme;
 
     // Basic validation
     if (!parsed.colors && !parsed.borderRadius && !parsed.shadows) {
@@ -380,6 +411,7 @@ export function parseThemeResponse(response: string): Theme | null {
     return parsed;
   } catch (error) {
     console.error('Failed to parse theme response:', error);
+    console.error('Response:', response.substring(0, 500));
     return null;
   }
 }
