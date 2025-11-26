@@ -66,9 +66,11 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
         )}
 
         {/* Message Content */}
-        <div className="bg-secondary border border-tertiary rounded-2xl rounded-tl-sm px-4 py-2">
-          <p className="text-sm text-body whitespace-pre-wrap">{message.content}</p>
-        </div>
+        {message.content && (
+          <div className="bg-secondary border border-tertiary rounded-2xl rounded-tl-sm px-4 py-2">
+            <p className="text-sm text-body whitespace-pre-wrap">{message.content}</p>
+          </div>
+        )}
 
         {/* Error Display */}
         {hasAction && !actionSuccess && message.action?.result.error && (

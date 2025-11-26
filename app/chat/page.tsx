@@ -3,21 +3,25 @@
 import { ChatProvider } from '@/contexts/ChatContext';
 import MessageList from '@/components/chat/MessageList';
 import ChatInput from '@/components/chat/ChatInput';
+import ShimmerOverlay from '@/components/ui/ShimmerOverlay';
 import { useChat } from '@/contexts/ChatContext';
 
 function ChatContent() {
-  const { messages } = useChat();
+  const { messages, isGenerating } = useChat();
 
   return (
-    <div className="flex flex-col h-[calc(100vh-2rem)] w-full">
-      {/* Messages area */}
-      <div className="flex-1 overflow-hidden">
-        <MessageList messages={messages} />
-      </div>
+    <>
+      <ShimmerOverlay isVisible={isGenerating} />
+      <div className="flex flex-col h-[calc(100vh-2rem)] w-full">
+        {/* Messages area */}
+        <div className="flex-1 overflow-hidden">
+          <MessageList messages={messages} />
+        </div>
 
-      {/* Input area */}
-      <ChatInput />
-    </div>
+        {/* Input area */}
+        <ChatInput />
+      </div>
+    </>
   );
 }
 

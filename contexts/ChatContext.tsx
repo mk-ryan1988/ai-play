@@ -107,6 +107,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       const data = await response.json();
 
+      // Check if the action failed - if so, stop generating state immediately
+      if (data.action && !data.action.result.success) {
+        setIsGenerating(false);
+      }
+
       // If there's a theme update action, apply it
       if (data.action?.type === 'updateTheme' && data.action.result.success) {
         if (themeContext && data.action.result.theme) {
@@ -119,7 +124,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: data.message || 'Done!',
+        content: data.message || '',
         timestamp: new Date(),
         action: data.action,
       };

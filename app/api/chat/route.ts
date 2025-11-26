@@ -62,9 +62,19 @@ async function executeUpdateTheme(description: string, currentTheme?: Theme): Pr
     };
   } catch (error) {
     console.error('Theme update error:', error);
+
+    // Check if this is a parsing error (likely non-theme request)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    if (errorMessage.includes('Failed to parse theme')) {
+      return {
+        success: false,
+        error: 'I can only help with theme customization! Try asking me to change colors, make things darker/lighter, adjust roundness, or apply different visual styles.',
+      };
+    }
+
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: errorMessage,
     };
   }
 }
@@ -110,12 +120,11 @@ export async function POST(request: NextRequest) {
     };
 
     // Generate a brief response message
-    let responseMessage = 'Theme updated!';
+    let responseMessage = '';
     if (result.success) {
       responseMessage = `Applied ${latestMessage.content} theme!`;
-    } else {
-      responseMessage = `Failed to apply theme: ${result.error}`;
     }
+    // Don't set message content for errors - the error box will display it
 
     return NextResponse.json({
       message: responseMessage,
