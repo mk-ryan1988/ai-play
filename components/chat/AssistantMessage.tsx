@@ -1,25 +1,37 @@
 import { Message } from '@/contexts/ChatContext';
-import { CheckCircleIcon, XCircleIcon, PaintBrushIcon } from '@heroicons/react/24/solid';
+import { CheckCircleIcon, XCircleIcon, PaintBrushIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { useThemeOptional } from '@/contexts/ThemeContext';
 
 interface AssistantMessageProps {
   message: Message;
 }
 
 export default function AssistantMessage({ message }: AssistantMessageProps) {
-  const hasAction = message.action;
-  const isThemeAction = message.action?.type === 'updateTheme';
-  const actionSuccess = message.action?.result.success;
-  const theme = message.action?.result.theme;
+  const themeContext = useThemeOptional();
+  const actions = message.actions || [];
+
+  const themeAction = actions.find(a => a.type === 'updateTheme');
+  const suggestionAction = actions.find(a => a.type === 'suggestTheme');
+
+  const hasThemeAction = !!themeAction;
+  const actionSuccess = themeAction?.result.success;
+  const theme = themeAction?.result.theme;
+
+  const handleSuggestionClick = () => {
+    if (suggestionAction?.parameters.action === 'reset' && themeContext) {
+      themeContext.resetTheme(); // Reset without persisting
+    }
+  };
 
   return (
     <div className="flex justify-start mb-4">
       <div className="max-w-[70%]">
         {/* Action Badge */}
-        {hasAction && isThemeAction && (
+        {hasThemeAction && themeAction && (
           <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-tertiary border border-tertiary rounded-lg w-fit">
             <PaintBrushIcon className="w-4 h-4 text-accent" />
             <span className="text-xs text-label font-medium">
-              {message.action.parameters.description}
+              {themeAction.parameters.description}
             </span>
             {actionSuccess ? (
               <CheckCircleIcon className="w-4 h-4 text-green-500" />
@@ -30,7 +42,7 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
         )}
 
         {/* Theme Preview */}
-        {isThemeAction && actionSuccess && theme && (
+        {hasThemeAction && actionSuccess && theme && (
           <div className="mb-2 px-3 py-2 bg-tertiary border border-tertiary rounded-lg">
             <div className="text-xs text-label mb-2 font-medium">Theme Colors:</div>
             <div className="flex flex-wrap gap-2">
@@ -65,6 +77,19 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
           </div>
         )}
 
+        {/* Theme Suggestion */}
+        {suggestionAction && (
+          <button
+            onClick={handleSuggestionClick}
+            className="mb-2 px-3 py-1.5 bg-accent/10 hover:bg-accent/20 border border-accent/30 rounded-full transition-colors flex items-center gap-2 w-fit"
+          >
+            <SparklesIcon className="w-3.5 h-3.5 text-accent" />
+            <span className="text-xs text-accent font-medium">
+              {suggestionAction.parameters.prompt}
+            </span>
+          </button>
+        )}
+
         {/* Message Content */}
         {message.content && (
           <div className="bg-secondary border border-tertiary rounded-2xl rounded-tl-sm px-4 py-2">
@@ -73,9 +98,9 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
         )}
 
         {/* Error Display */}
-        {hasAction && !actionSuccess && message.action?.result.error && (
+        {hasThemeAction && !actionSuccess && themeAction?.result.error && (
           <div className="mt-2 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <p className="text-xs text-red-400">{message.action.result.error}</p>
+            <p className="text-xs text-red-400">{themeAction.result.error}</p>
           </div>
         )}
       </div>

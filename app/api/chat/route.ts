@@ -20,6 +20,26 @@ const updateThemeTool: FunctionDeclaration = {
   },
 };
 
+// Define the suggestTheme function/tool for Gemini
+const suggestThemeTool: FunctionDeclaration = {
+  name: 'suggestTheme',
+  description: 'Suggests a theme prompt to the user. Use this AFTER successfully applying a theme to suggest related theme options. Currently only used to suggest "Quick Sergio is here" when the theme appears to be light mode.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      prompt: {
+        type: Type.STRING,
+        description: 'The suggestion text to display (e.g., "Quick Sergio is here")',
+      },
+      action: {
+        type: Type.STRING,
+        description: 'The action to perform when clicked. Currently only "reset" is supported.',
+      },
+    },
+    required: ['prompt', 'action'],
+  },
+};
+
 // System instruction for the model
 const SYSTEM_INSTRUCTION = `You are a friendly theme customization assistant. You help users customize their application's visual appearance through natural conversation.
 
@@ -28,6 +48,13 @@ When users share an image, analyze its COMPLETE visual aesthetic (colors, shapes
   - Dominant colors and accents
   - Visual style (angular/geometric = sharp corners, organic/natural = rounded, modern/clean = moderate)
   - Mood and atmosphere
+
+You can call MULTIPLE functions in one response:
+  - When the user requests a LIGHT theme (e.g., "light theme", "flash bang", "bright"), call BOTH:
+    1. updateTheme with the light theme description
+    2. suggestTheme with prompt="Quick Sergio is here", action="reset"
+  - This is an easter egg - only suggest it when applying light themes
+
 When users are just chatting, greeting, asking questions, or thanking you, respond naturally and conversationally.
 
 Be warm, helpful, and concise. Keep responses brief (1-2 sentences) unless the user asks for details.
@@ -36,8 +63,9 @@ Special commands:
 - "flash bang" means make the theme light (bright, white backgrounds)
 
 Examples:
-- "make it purple" → Use updateTheme function
-- "flash bang" → Use updateTheme function with "light theme"
+- "make it purple" → Use updateTheme function only
+- "flash bang" → Use BOTH updateTheme("light theme") AND suggestTheme(prompt="Quick Sergio is here", action="reset")
+- "make it light" → Use BOTH updateTheme("light theme") AND suggestTheme(prompt="Quick Sergio is here", action="reset")
 - [User shares image of sunset] → Use updateTheme function with "warm orange and purple sunset theme with soft rounded corners"
 - [User shares image of forest] → Use updateTheme function with "natural green forest theme with organic rounded corners"
 - [User shares futuristic tech UI] → Use updateTheme function with "futuristic dark theme with cyan and yellow accents and sharp angular corners"
@@ -55,9 +83,11 @@ interface ChatMessage {
 }
 
 interface ActionResult {
-  type: 'updateTheme';
+  type: 'updateTheme' | 'suggestTheme';
   parameters: {
-    description: string;
+    description?: string; // for updateTheme
+    prompt?: string; // for suggestTheme
+    action?: string; // for suggestTheme
   };
   result: {
     success: boolean;
@@ -169,7 +199,7 @@ export async function POST(request: NextRequest) {
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         tools: [{
-          functionDeclarations: [updateThemeTool]
+          functionDeclarations: [updateThemeTool, suggestThemeTool]
         }],
         toolConfig: {
           functionCallingConfig: {
@@ -181,30 +211,45 @@ export async function POST(request: NextRequest) {
 
     console.log('Gemini response:', JSON.stringify(response, null, 2));
 
-    // Check if the model made a function call
-    const functionCall = response.functionCalls?.[0];
+    // Check if the model made function calls (can be multiple)
+    const functionCalls = response.functionCalls || [];
 
-    if (functionCall && functionCall.name === 'updateTheme' && functionCall.args) {
-      // Model decided to update the theme
-      console.log('Function call detected:', functionCall);
-      const description = functionCall.args.description as string;
-      const result = await executeUpdateTheme(description, currentTheme);
-
-      const action: ActionResult = {
-        type: 'updateTheme',
-        parameters: { description },
-        result,
-      };
-
-      // Generate a friendly response
+    if (functionCalls.length > 0) {
+      const actions: ActionResult[] = [];
       let responseMessage = '';
-      if (result.success) {
-        responseMessage = `✨ Applied ${description}!`;
+
+      // Process all function calls
+      for (const functionCall of functionCalls) {
+        if (functionCall.name === 'updateTheme' && functionCall.args) {
+          console.log('updateTheme call detected:', functionCall);
+          const description = functionCall.args.description as string;
+          const result = await executeUpdateTheme(description, currentTheme);
+
+          actions.push({
+            type: 'updateTheme',
+            parameters: { description },
+            result,
+          });
+
+          if (result.success) {
+            responseMessage = `✨ Applied ${description}!`;
+          }
+        } else if (functionCall.name === 'suggestTheme' && functionCall.args) {
+          console.log('suggestTheme call detected:', functionCall);
+          const prompt = functionCall.args.prompt as string;
+          const action = functionCall.args.action as string;
+
+          actions.push({
+            type: 'suggestTheme',
+            parameters: { prompt, action },
+            result: { success: true },
+          });
+        }
       }
 
       return NextResponse.json({
         message: responseMessage,
-        action,
+        actions, // Return array of actions
       });
     } else {
       // Model decided to just respond conversationally

@@ -5,9 +5,11 @@ import { useThemeOptional } from './ThemeContext';
 import type { Theme } from '@/utils/theme';
 
 export interface ActionMetadata {
-  type: 'updateTheme';
+  type: 'updateTheme' | 'suggestTheme';
   parameters: {
-    description: string;
+    description?: string; // for updateTheme
+    prompt?: string; // for suggestTheme
+    action?: string; // for suggestTheme
   };
   result: {
     success: boolean;
@@ -21,7 +23,7 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  action?: ActionMetadata;
+  actions?: ActionMetadata[]; // Can have multiple actions now
   image?: {
     data: string; // base64 encoded image
     mimeType: string; // e.g., "image/jpeg", "image/png"
@@ -115,29 +117,35 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
 
       const data = await response.json();
 
-      // Check if the action failed - if so, stop generating state immediately
-      if (data.action && !data.action.result.success) {
+      // Handle actions (can be multiple)
+      const actions = data.actions || [];
+
+      // Check if any action failed
+      const hasFailedAction = actions.some((action: ActionMetadata) => !action.result.success);
+      if (hasFailedAction) {
         setIsGenerating(false);
       }
 
-      // If there's a theme update action, apply it
-      if (data.action?.type === 'updateTheme' && data.action.result.success) {
-        setIsUpdatingTheme(true); // Show shimmer overlay during theme update
-        if (themeContext && data.action.result.theme) {
-          themeContext.updateTheme(data.action.result.theme);
-          themeContext.saveTheme(); // Save to localStorage
+      // Process theme update actions
+      for (const action of actions) {
+        if (action.type === 'updateTheme' && action.result.success) {
+          setIsUpdatingTheme(true); // Show shimmer overlay during theme update
+          if (themeContext && action.result.theme) {
+            themeContext.updateTheme(action.result.theme);
+            themeContext.saveTheme(); // Save to localStorage
+          }
+          // Brief delay to let the shimmer effect be visible
+          setTimeout(() => setIsUpdatingTheme(false), 500);
         }
-        // Brief delay to let the shimmer effect be visible
-        setTimeout(() => setIsUpdatingTheme(false), 500);
       }
 
-      // Add assistant message with action metadata
+      // Add assistant message with actions metadata
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
         content: data.message || '',
         timestamp: new Date(),
-        action: data.action,
+        actions: actions.length > 0 ? actions : undefined,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
