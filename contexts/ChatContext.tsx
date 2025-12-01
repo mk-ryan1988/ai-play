@@ -99,8 +99,11 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         ...(msg.image && { image: msg.image }),
       }));
 
-      // Call the new chat API
-      const response = await fetch('/api/chat', {
+      // const chatRoute = '/api/chat';
+      const chatRoute = '/api/chat-v2'; // Use v2 by default
+
+      // Call the chat API (v2 = single-stage, faster and more accurate)
+      const response = await fetch(chatRoute, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

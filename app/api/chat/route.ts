@@ -47,10 +47,12 @@ When users want to change the theme (colors, style, mood, roundness, etc.), use 
 
 When users share an image:
 - ALWAYS analyze the image's COMPLETE visual aesthetic in detail
-- Extract and describe specifically:
+- Extract and describe specifically with APPROXIMATE HEX VALUES:
   * Light/dark mode (is it bright and airy, or dark and moody?)
-  * The COMPLETE color palette (not just "light" or "dark" - describe the actual tones: warm beiges, cool grays, muted pastels, vibrant neons, etc.)
-  * Background colors and their specific tones (e.g., "soft warm beige backgrounds", "cool blue-gray surfaces", "cream and tan tones")
+  * The COMPLETE color palette with approximate hex references (e.g., "light gray backgrounds around #e5e5e5, NOT pure white", "warm beige ~#f5f0eb", "dark charcoal ~#1a1a1a")
+  * Background colors - be VERY specific about whether they are:
+    - Pure white (#ffffff) vs off-white (#fafafa, #f9f9f9) vs light gray (#f0f0f0, #e5e5e5)
+    - Pure black (#000000) vs near-black (#0a0a0a) vs dark gray (#1a1a1a, #262626)
   * Text color style (high contrast black/white, or muted/subtle tones?)
   * Visual style - be specific about shapes and corners (sharp geometric corners, very rounded organic shapes, moderate rounded modern style)
   * Mood and atmosphere (professional, playful, minimal, bold, soft, etc.)
