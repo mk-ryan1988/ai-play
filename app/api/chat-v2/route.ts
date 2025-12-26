@@ -2,145 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenAI, FunctionCallingConfigMode, Type } from '@google/genai';
 import type { FunctionDeclaration } from '@google/genai';
 import type { Theme } from '@/utils/theme';
+import { generateGeminiFunctionSchema, THEME_GUIDELINES } from '@/utils/theme-config';
 
-// Define the updateTheme function/tool for Gemini - with FULL theme structure
+// Generate the updateTheme function schema from config
+const themeSchema = generateGeminiFunctionSchema();
+
 const updateThemeTool: FunctionDeclaration = {
   name: 'updateTheme',
   description: 'Updates the application theme based on user preferences. Use this when the user wants to change colors, appearance, mood, or visual style of the application.',
   parameters: {
     type: Type.OBJECT,
-    properties: {
-      colors: {
-        type: Type.OBJECT,
-        description: 'Color scheme for the theme. Use hex color values.',
-        properties: {
-          primary: {
-            type: Type.STRING,
-            description: 'Primary background/surface color (hex, e.g., "#f9fafb" for light, "#0a0a0a" for dark)',
-          },
-          secondary: {
-            type: Type.STRING,
-            description: 'Secondary background/surface color (hex)',
-          },
-          tertiary: {
-            type: Type.STRING,
-            description: 'Tertiary background/surface color (hex)',
-          },
-          textTitle: {
-            type: Type.STRING,
-            description: 'Title text color (hex)',
-          },
-          textSubtitle: {
-            type: Type.STRING,
-            description: 'Subtitle text color (hex)',
-          },
-          textBody: {
-            type: Type.STRING,
-            description: 'Body text color (hex)',
-          },
-          textLabel: {
-            type: Type.STRING,
-            description: 'Label text color (hex)',
-          },
-          accent: {
-            type: Type.STRING,
-            description: 'Accent/brand color for interactive elements (hex)',
-          },
-          accentHover: {
-            type: Type.STRING,
-            description: 'Accent color on hover - slightly darker/lighter than accent (hex)',
-          },
-          accentText: {
-            type: Type.STRING,
-            description: 'Text color on accent background - must be readable (hex)',
-          },
-          success: {
-            type: Type.STRING,
-            description: 'Success state color (hex)',
-          },
-          successLight: {
-            type: Type.STRING,
-            description: 'Light success background color (hex)',
-          },
-          warning: {
-            type: Type.STRING,
-            description: 'Warning state color (hex)',
-          },
-          warningLight: {
-            type: Type.STRING,
-            description: 'Light warning background color (hex)',
-          },
-          error: {
-            type: Type.STRING,
-            description: 'Error state color (hex)',
-          },
-          errorLight: {
-            type: Type.STRING,
-            description: 'Light error background color (hex)',
-          },
-          info: {
-            type: Type.STRING,
-            description: 'Info state color (hex)',
-          },
-          infoLight: {
-            type: Type.STRING,
-            description: 'Light info background color (hex)',
-          },
-        },
-      },
-      borderRadius: {
-        type: Type.OBJECT,
-        description: 'Border radius values for rounded corners. Use CSS units like "0.375rem" or "0" for sharp corners.',
-        properties: {
-          sm: {
-            type: Type.STRING,
-            description: 'Small border radius (e.g., "0.125rem", "0")',
-          },
-          md: {
-            type: Type.STRING,
-            description: 'Medium border radius (e.g., "0.375rem")',
-          },
-          lg: {
-            type: Type.STRING,
-            description: 'Large border radius (e.g., "0.5rem")',
-          },
-          xl: {
-            type: Type.STRING,
-            description: 'Extra large border radius (e.g., "0.75rem")',
-          },
-          '2xl': {
-            type: Type.STRING,
-            description: '2X large border radius (e.g., "1rem")',
-          },
-          full: {
-            type: Type.STRING,
-            description: 'Full border radius for circles (e.g., "9999px")',
-          },
-        },
-      },
-      shadows: {
-        type: Type.OBJECT,
-        description: 'Box shadow values for depth. Use CSS box-shadow syntax.',
-        properties: {
-          sm: {
-            type: Type.STRING,
-            description: 'Small shadow (e.g., "0 1px 2px 0 rgb(0 0 0 / 0.05)")',
-          },
-          md: {
-            type: Type.STRING,
-            description: 'Medium shadow',
-          },
-          lg: {
-            type: Type.STRING,
-            description: 'Large shadow',
-          },
-          xl: {
-            type: Type.STRING,
-            description: 'Extra large shadow',
-          },
-        },
-      },
-    },
+    properties: themeSchema,
   },
 };
 
@@ -164,21 +36,12 @@ const suggestThemeTool: FunctionDeclaration = {
   },
 };
 
-// System instruction for the model
+// System instruction for the model (uses guidelines from config)
 const SYSTEM_INSTRUCTION = `You are a friendly theme customization assistant. You help users customize their application's visual appearance through natural conversation.
 
 When users want to change the theme (colors, style, mood, roundness, etc.), use the updateTheme function with COMPLETE theme values.
 
-Theme Generation Guidelines:
-- Use hex colors for all color values (e.g., "#9333ea" not "purple")
-- For dark themes: use dark colors (#0a0a0a, #171717) for surfaces, light colors (#ffffff, #e5e5e5) for text
-- For light themes: use light colors (#f9fafb, #ffffff) for surfaces, dark colors (#111827, #374151) for text
-- Accent colors should have sufficient contrast with backgrounds
-- accentHover should be slightly darker (dark themes) or lighter (light themes) than accent for hover states
-- accentText should be readable on accent background (usually white on dark accents, black on light accents)
-- For "square" or "sharp" requests, use "0" for border radius
-- For "rounded" requests, use larger radius values (0.5rem - 1rem)
-- Only include properties that need to change; you can omit properties to keep them unchanged
+${THEME_GUIDELINES}
 
 When users share an image:
 - ALWAYS analyze the image's COMPLETE visual aesthetic in detail

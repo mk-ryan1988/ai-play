@@ -8,6 +8,7 @@
     --color-primary: theme('colors.neutral.100');
     --color-secondary: theme('colors.neutral.50');
     --color-tertiary: theme('colors.white');
+    --color-sidemenu: theme('colors.neutral.50');
 
     --text-title: theme('colors.neutral.900');
     --text-subtitle: theme('colors.neutral.700');
@@ -50,6 +51,7 @@
       --color-primary: theme('colors.neutral.950');
       --color-secondary: theme('colors.neutral.900');
       --color-tertiary: theme('colors.neutral.800');
+      --color-sidemenu: theme('colors.neutral.900');
 
       --text-title: theme('colors.white');
       --text-subtitle: theme('colors.neutral.200');

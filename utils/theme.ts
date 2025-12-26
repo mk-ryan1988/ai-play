@@ -5,93 +5,23 @@
  * by manipulating CSS variables. Supports light/dark modes and all themeable properties.
  */
 
-// Type definitions for theme properties
-export interface ThemeColors {
-  // Surface colors
-  primary?: string;
-  secondary?: string;
-  tertiary?: string;
+// Import from single source of truth
+import {
+  themePropertyMap,
+  colorKeys,
+  borderRadiusKeys,
+  shadowKeys,
+  generateSystemPromptVariables,
+  generateJsonSchemaForPrompt,
+  THEME_GUIDELINES,
+} from './theme-config';
 
-  // Text colors
-  textTitle?: string;
-  textSubtitle?: string;
-  textBody?: string;
-  textLabel?: string;
+// Re-export types and map from config
+export type { Theme, ThemeColors, ThemeBorderRadius, ThemeShadows } from './theme-config';
+export { themePropertyMap } from './theme-config';
 
-  // Accent colors
-  accent?: string;
-  accentHover?: string;
-  accentText?: string;
-
-  // Semantic colors
-  success?: string;
-  successLight?: string;
-  warning?: string;
-  warningLight?: string;
-  error?: string;
-  errorLight?: string;
-  info?: string;
-  infoLight?: string;
-}
-
-export interface ThemeBorderRadius {
-  sm?: string;
-  md?: string;
-  lg?: string;
-  xl?: string;
-  '2xl'?: string;
-  full?: string;
-}
-
-export interface ThemeShadows {
-  sm?: string;
-  md?: string;
-  lg?: string;
-  xl?: string;
-}
-
-export interface Theme {
-  colors?: ThemeColors;
-  borderRadius?: ThemeBorderRadius;
-  shadows?: ThemeShadows;
-}
-
-// Map theme object keys to CSS variable names
-export const themePropertyMap: Record<string, string> = {
-  // Colors
-  'colors.primary': '--color-primary',
-  'colors.secondary': '--color-secondary',
-  'colors.tertiary': '--color-tertiary',
-  'colors.textTitle': '--text-title',
-  'colors.textSubtitle': '--text-subtitle',
-  'colors.textBody': '--text-body',
-  'colors.textLabel': '--text-label',
-  'colors.accent': '--color-accent',
-  'colors.accentHover': '--color-accent-hover',
-  'colors.accentText': '--color-accent-text',
-  'colors.success': '--color-success',
-  'colors.successLight': '--color-success-light',
-  'colors.warning': '--color-warning',
-  'colors.warningLight': '--color-warning-light',
-  'colors.error': '--color-error',
-  'colors.errorLight': '--color-error-light',
-  'colors.info': '--color-info',
-  'colors.infoLight': '--color-info-light',
-
-  // Border Radius
-  'borderRadius.sm': '--radius-sm',
-  'borderRadius.md': '--radius-md',
-  'borderRadius.lg': '--radius-lg',
-  'borderRadius.xl': '--radius-xl',
-  'borderRadius.2xl': '--radius-2xl',
-  'borderRadius.full': '--radius-full',
-
-  // Shadows
-  'shadows.sm': '--shadow-sm',
-  'shadows.md': '--shadow-md',
-  'shadows.lg': '--shadow-lg',
-  'shadows.xl': '--shadow-xl',
-};
+// Import types for internal use
+import type { Theme, ThemeColors, ThemeBorderRadius, ThemeShadows } from './theme-config';
 
 /**
  * Get the root element for CSS variable manipulation
@@ -99,7 +29,6 @@ export const themePropertyMap: Record<string, string> = {
 function getRoot(): HTMLElement {
   return document.documentElement;
 }
-
 
 /**
  * Update a single CSS variable
@@ -186,37 +115,27 @@ export function getTheme(): Theme {
     shadows: {},
   };
 
-  // Get all color values
-  const colorKeys: (keyof ThemeColors)[] = [
-    'primary', 'secondary', 'tertiary',
-    'textTitle', 'textSubtitle', 'textBody', 'textLabel',
-    'accent', 'accentHover', 'accentText',
-    'success', 'successLight', 'warning', 'warningLight',
-    'error', 'errorLight', 'info', 'infoLight'
-  ];
-
+  // Get all color values (using keys from config)
   colorKeys.forEach(key => {
     const cssVar = themePropertyMap[`colors.${key}`];
     if (cssVar && theme.colors) {
-      theme.colors[key] = getThemeVariable(cssVar);
+      (theme.colors as Record<string, string>)[key] = getThemeVariable(cssVar);
     }
   });
 
-  // Get all border radius values
-  const radiusKeys: (keyof ThemeBorderRadius)[] = ['sm', 'md', 'lg', 'xl', '2xl', 'full'];
-  radiusKeys.forEach(key => {
+  // Get all border radius values (using keys from config)
+  borderRadiusKeys.forEach(key => {
     const cssVar = themePropertyMap[`borderRadius.${key}`];
     if (cssVar && theme.borderRadius) {
-      theme.borderRadius[key] = getThemeVariable(cssVar);
+      (theme.borderRadius as Record<string, string>)[key] = getThemeVariable(cssVar);
     }
   });
 
-  // Get all shadow values
-  const shadowKeys: (keyof ThemeShadows)[] = ['sm', 'md', 'lg', 'xl'];
+  // Get all shadow values (using keys from config)
   shadowKeys.forEach(key => {
     const cssVar = themePropertyMap[`shadows.${key}`];
     if (cssVar && theme.shadows) {
-      theme.shadows[key] = getThemeVariable(cssVar);
+      (theme.shadows as Record<string, string>)[key] = getThemeVariable(cssVar);
     }
   });
 
@@ -282,73 +201,20 @@ export function applySavedTheme(key: string = 'app-theme'): boolean {
 }
 
 /**
- * System prompt for LLM-based theme generation
- * This teaches the LLM about available CSS variables and expected response format
+ * System prompt for LLM-based theme generation (JSON style)
+ * Auto-generated from theme-config.ts
  */
 export const THEME_SYSTEM_PROMPT = `You are a theme generation assistant. Based on user requests, you generate theme configurations for a web application.
 
 CRITICAL: Your response must be ONLY valid, complete JSON - no explanations, no other text before or after. Start with { and end with }.
 
-Available CSS Variables:
-- Colors:
-  - primary, secondary, tertiary (surface/background colors)
-  - textTitle, textSubtitle, textBody, textLabel (text colors)
-  - accent, accentHover, accentText (brand/interactive colors)
-  - success, successLight, warning, warningLight, error, errorLight, info, infoLight (semantic colors)
-- Border Radius:
-  - sm, md, lg, xl, 2xl, full (sizing: 0.125rem to 9999px)
-- Shadows:
-  - sm, md, lg, xl (box shadows)
+${generateSystemPromptVariables()}
 
 Response Format:
-Return ONLY a valid JSON object matching this TypeScript interface:
-{
-  "colors": {
-    "primary"?: string,      // hex color (e.g., "#f5f5f5")
-    "secondary"?: string,
-    "tertiary"?: string,
-    "textTitle"?: string,
-    "textSubtitle"?: string,
-    "textBody"?: string,
-    "textLabel"?: string,
-    "accent"?: string,
-    "accentHover"?: string,
-    "accentText"?: string,
-    "success"?: string,
-    "successLight"?: string,
-    "warning"?: string,
-    "warningLight"?: string,
-    "error"?: string,
-    "errorLight"?: string,
-    "info"?: string,
-    "infoLight"?: string
-  },
-  "borderRadius": {
-    "sm"?: string,          // CSS value (e.g., "0.125rem", "0")
-    "md"?: string,
-    "lg"?: string,
-    "xl"?: string,
-    "2xl"?: string,
-    "full"?: string
-  },
-  "shadows": {
-    "sm"?: string,          // CSS box-shadow value
-    "md"?: string,
-    "lg"?: string,
-    "xl"?: string
-  }
-}
+Return ONLY a valid JSON object matching this structure:
+${generateJsonSchemaForPrompt()}
 
-Guidelines:
-- Use hex colors for all color values (e.g., "#9333ea" not "purple")
-- For dark themes: use dark colors (900s) for surfaces, light colors (50-300) for text
-- For light themes: use light colors (50-100) for surfaces, dark colors (700-900) for text
-- Accent colors should have sufficient contrast with backgrounds
-- accentHover should be slightly darker/lighter than accent for hover states
-- accentText should be readable on accent background
-- For "square" or "sharp" requests, use "0" for border radius
-- For "rounded" requests, use larger radius values (0.5rem - 1rem)
-- Only include properties that need to change; omit unchanged properties
+${THEME_GUIDELINES}
 
 Image Analysis Guidelines:
 When analyzing an image to generate a theme, consider the COMPLETE visual aesthetic:
@@ -364,13 +230,10 @@ When analyzing an image to generate a theme, consider the COMPLETE visual aesthe
 
 Examples:
 Request: "Make it purple, square, and light mode"
-Response: {"colors":{"accent":"#9333ea","accentHover":"#7e22ce","accentText":"#ffffff","primary":"#f5f5f5","secondary":"#fafafa","tertiary":"#ffffff","textTitle":"#171717","textSubtitle":"#404040","textBody":"#525252","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.125rem","2xl":"0.25rem"}}
+Response: {"colors":{"accent":"#9333ea","accentHover":"#7e22ce","accentText":"#ffffff","primary":"#f5f5f5","secondary":"#fafafa","tertiary":"#ffffff","sidemenu":"#fafafa","textTitle":"#171717","textSubtitle":"#404040","textBody":"#525252","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.125rem","2xl":"0.25rem"}}
 
 Request: "Dark mode with blue accents and rounded corners"
-Response: {"colors":{"accent":"#3b82f6","accentHover":"#2563eb","accentText":"#ffffff","primary":"#0a0a0a","secondary":"#171717","tertiary":"#262626","textTitle":"#ffffff","textSubtitle":"#e5e5e5","textBody":"#d4d4d4","textLabel":"#a3a3a3"},"borderRadius":{"sm":"0.375rem","md":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem"}}
-
-Request: [Image of futuristic UI with cyan and yellow tech elements]
-Response: {"colors":{"accent":"#06b6d4","accentHover":"#0891b2","accentText":"#000000","primary":"#0a0a0a","secondary":"#171717","tertiary":"#1f1f1f","textTitle":"#06b6d4","textSubtitle":"#d4d4d4","textBody":"#a3a3a3","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.25rem","2xl":"0.375rem"}}`;
+Response: {"colors":{"accent":"#3b82f6","accentHover":"#2563eb","accentText":"#ffffff","primary":"#0a0a0a","secondary":"#171717","tertiary":"#262626","sidemenu":"#171717","textTitle":"#ffffff","textSubtitle":"#e5e5e5","textBody":"#d4d4d4","textLabel":"#a3a3a3"},"borderRadius":{"sm":"0.375rem","md":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem"}}`;
 
 /**
  * Parse LLM response into a Theme object
