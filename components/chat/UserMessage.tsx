@@ -21,7 +21,13 @@ export default function UserMessage({ message }: UserMessageProps) {
 
         {/* Text content */}
         {message.content && (
-          <div className="bg-accent text-accent-text rounded-2xl rounded-tr-sm px-4 py-2">
+          <div
+            className="bg-accent text-accent-text px-4 py-2"
+            style={{
+              borderRadius: 'var(--radius-2xl)',
+              borderTopRightRadius: 'calc(var(--radius-2xl) * 0.15)',
+            }}
+          >
             <p className="text-sm whitespace-pre-wrap">{message.content}</p>
           </div>
         )}

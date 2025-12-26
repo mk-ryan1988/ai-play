@@ -92,7 +92,13 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
 
         {/* Message Content */}
         {message.content && (
-          <div className="bg-secondary border border-tertiary rounded-2xl rounded-tl-sm px-4 py-2">
+          <div
+            className="bg-secondary border border-tertiary px-4 py-2"
+            style={{
+              borderRadius: 'var(--radius-2xl)',
+              borderTopLeftRadius: 'calc(var(--radius-2xl) * 0.15)',
+            }}
+          >
             <p className="text-sm text-body whitespace-pre-wrap">{message.content}</p>
           </div>
         )}
