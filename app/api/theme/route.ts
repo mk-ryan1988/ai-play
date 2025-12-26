@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
     // Generate theme using Gemini
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-2.5-flash-lite',
       contents: `${THEME_SYSTEM_PROMPT}\n\nUser request: ${prompt}`,
     });
 
