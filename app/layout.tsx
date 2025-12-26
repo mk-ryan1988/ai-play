@@ -87,19 +87,16 @@ export default function RootLayout({
 
                 {/* Main Content */}
                 <main className={`
-                  relative flex-1 transition-all duration-300 my-4 mr-4
-                  bg-secondary border border-tertiary rounded-lg p-4
+                  flex flex-col flex-1 transition-all duration-300 my-4 mr-4
+                  bg-secondary border border-tertiary rounded-lg
+                  h-[calc(100vh-2rem)] overflow-hidden
                   ${isCollapsed && isMobile ? 'blur-sm' : ''}
                   ${isGuestRoute ? 'ml-4' : ''}
                   ${!isGuestRoute && !isCollapsed ? 'ml-[288px]' : 'ml-4'}
                 `}>
-                  {/* Cool toggle button */}
-                  <div
-                    className={`absolute top-2 left-2`}
-                  >
-                    <div
-                        popoverTarget="sidebar"
-                    >
+                  {/* Sticky header with toggle button */}
+                  <div className="sticky top-0 z-10 p-2 border-b border-tertiary bg-secondary">
+                    <div popoverTarget="sidebar">
                       <SidebarToggle
                         isOpen={!isCollapsed}
                         onClick={() => setIsCollapsed(!isCollapsed)}
@@ -107,7 +104,10 @@ export default function RootLayout({
                     </div>
                   </div>
 
-                  {children}
+                  {/* Scrollable content area */}
+                  <div className="flex-1 overflow-y-auto p-4">
+                    {children}
+                  </div>
                 </main>
               </div>
             </DialogProvider>

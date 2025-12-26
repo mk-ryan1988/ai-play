@@ -18,15 +18,11 @@ export default function MessageList({ messages }: MessageListProps) {
   }, [messages]);
 
   if (messages.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-full text-label">
-        <p>Start a conversation by typing a message below</p>
-      </div>
-    );
+    return null;
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6">
+    <div className="px-4 py-6">
       {messages.map((message) => (
         message.role === 'user' ? (
           <UserMessage key={message.id} message={message} />
