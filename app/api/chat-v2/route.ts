@@ -376,10 +376,26 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Chat v2 API error:', error);
+
+    // Check for rate limit error (429)
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    const isRateLimited = errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('quota');
+
+    if (isRateLimited) {
+      return NextResponse.json(
+        {
+          error: 'Rate limit exceeded',
+          errorCode: 'RATE_LIMITED',
+          details: errorMessage,
+        },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
       {
         error: 'Failed to process chat message',
-        details: error instanceof Error ? error.message : 'Unknown error'
+        details: errorMessage
       },
       { status: 500 }
     );

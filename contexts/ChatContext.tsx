@@ -114,11 +114,16 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }),
       });
 
+      const data = await response.json();
+
+      // Check for rate limit error
       if (!response.ok) {
+        if (response.status === 429 || data.errorCode === 'RATE_LIMITED') {
+          alert('⚠️ Rate limit exceeded!\n\nYou\'ve hit the API quota limit. Please wait a minute and try again.');
+          throw new Error('Rate limited');
+        }
         throw new Error(`API error: ${response.status}`);
       }
-
-      const data = await response.json();
 
       // Handle actions (can be multiple)
       const actions = data.actions || [];
