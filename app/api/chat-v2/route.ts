@@ -68,10 +68,9 @@ When users share an image:
   * IMPORTANT: Borders/shadows are INDEPENDENT from corners!
     - Thick borders + hard shadows + rounded corners = "soft brutalism" (Gumroad, Figma style)
     - Detect each property separately
-  * Sidemenu color - choose based on UI style:
-    - Playful/bold UIs with colorful illustrations → use accent color from illustrations for sidemenu (e.g., yellow #fde047)
-    - Minimal/clean UIs with uniform backgrounds → sidemenu should MATCH primary background (e.g., both #e5e5e5)
-    - Do NOT default to white/black - extract from the actual image
+  * Sidemenu color (text is auto-computed for accessibility):
+    - For playful/bold UIs: use accent from illustrations (e.g., sidemenu="#fde047" yellow)
+    - For minimal/clean UIs: sidemenu should match primary background
 - If the user ALSO mentions a specific color preference in text (e.g., "red accents", "blue primary"):
   * Use ALL the image details (light/dark mode, background tones, style, mood, shadows)
   * When generating accent/interactive colors, use ONLY the user's requested color, not what appears in the image

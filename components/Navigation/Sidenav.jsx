@@ -3,9 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { HomeIcon, PaintBrushIcon, SwatchIcon } from '@heroicons/react/24/solid';
+import { useContrastColors } from '@/hooks/useContrastColors';
 
 export default function Sidenav({ isCollapsed }) {
   const pathname = usePathname();
+  const { textColor, activeColor } = useContrastColors('--color-sidemenu');
 
   const menuItems = [
     { name: 'Home', path: '/', icon: HomeIcon },
@@ -27,16 +29,26 @@ export default function Sidenav({ isCollapsed }) {
       {/* Menu content */}
       <nav className="h-full flex flex-col">
         <div className="flex-1">
-          <div className="space-y-4 text-gray-300">
+          <div className="space-y-4">
             {menuItems.map((item) => (
               <Link
                 key={item.path}
                 href={item.path}
-                className={`
-                  flex items-center gap-3 p-2 rounded-lg transition-colors
-                  hover:text-title hover:bg-tertiary
-                  ${pathname === item.path ? 'text-title bg-tertiary' : 'text-label'}
-                `}
+                className="flex items-center gap-3 p-2 rounded-lg transition-colors"
+                style={{
+                  color: textColor,
+                  backgroundColor: pathname === item.path ? activeColor : 'transparent',
+                }}
+                onMouseEnter={(e) => {
+                  if (pathname !== item.path) {
+                    e.currentTarget.style.backgroundColor = activeColor;
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (pathname !== item.path) {
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
               >
                 <item.icon className="w-5 h-5" />
                 {!isCollapsed && <span>{item.name}</span>}

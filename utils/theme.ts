@@ -128,6 +128,21 @@ export function getThemeVariable(property: string): string {
 }
 
 /**
+ * Check if a hex color is light or dark using luminance calculation
+ * Uses the relative luminance formula for accessibility (WCAG)
+ * @param hex - Hex color string (e.g., "#ffffff" or "ffffff")
+ * @returns true if the color is light, false if dark
+ */
+export function isLightColor(hex: string): boolean {
+  if (!hex || hex === 'transparent') return true;
+  const c = hex.replace('#', '');
+  const r = parseInt(c.slice(0, 2), 16);
+  const g = parseInt(c.slice(2, 4), 16);
+  const b = parseInt(c.slice(4, 6), 16);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
+
+/**
  * Get the current theme as an object
  * @returns Theme object with all current values
  */

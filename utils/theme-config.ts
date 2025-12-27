@@ -24,7 +24,7 @@ export const THEME_COLORS = {
   primary: { cssVar: '--color-primary', description: 'Primary background/surface color (hex, e.g., "#f9fafb" for light, "#0a0a0a" for dark)' },
   secondary: { cssVar: '--color-secondary', description: 'Secondary background/surface color (hex)' },
   tertiary: { cssVar: '--color-tertiary', description: 'Tertiary background/surface color (hex)' },
-  sidemenu: { cssVar: '--color-sidemenu', description: 'Sidebar/navigation menu background color (hex)' },
+  sidemenu: { cssVar: '--color-sidemenu', description: 'Sidebar/navigation menu background color (hex) - text color is auto-computed for accessibility' },
 
   // Text colors
   textTitle: { cssVar: '--text-title', description: 'Title text color (hex)' },
@@ -241,10 +241,10 @@ export const THEME_GUIDELINES = `Theme Generation Guidelines:
 - Use hex colors for all color values (e.g., "#9333ea" not "purple")
 - For dark themes: use dark colors (#0a0a0a, #171717) for surfaces, light colors (#ffffff, #e5e5e5) for text
 - For light themes: use light colors (#f9fafb, #ffffff) for surfaces, dark colors (#111827, #374151) for text
-- ALWAYS include sidemenu color based on the UI style:
-  * Playful/bold UIs (like Gumroad): Look for accent colors in illustrations, icons, or decorative elements - use these for sidemenu (e.g., yellow from illustrations → sidemenu: "#fde047")
-  * Minimal/clean UIs with uniform backgrounds: sidemenu should MATCH the primary background color for a cohesive look (e.g., if primary is "#e5e5e5", sidemenu should also be "#e5e5e5")
-  * DO NOT default to white (#ffffff) or black (#000000) unless that matches the actual UI aesthetic
+- ALWAYS include sidemenu background color based on the UI style (text color is auto-computed for accessibility):
+  * For playful/bold UIs (like Gumroad): use accent colors from illustrations (e.g., sidemenu="#fde047" yellow)
+  * For minimal/clean UIs: sidemenu should MATCH primary background for a cohesive look
+  * DO NOT default sidemenu to white/black unless that matches the actual UI aesthetic
 - Accent colors should have sufficient contrast with backgrounds
 - accentHover should be slightly darker (dark themes) or lighter (light themes) than accent for hover states
 - accentText should be readable on accent background (usually white on dark accents, black on light accents)
