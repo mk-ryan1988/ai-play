@@ -11,17 +11,20 @@ import {
   colorKeys,
   borderRadiusKeys,
   shadowKeys,
+  typographyKeys,
+  borderKeys,
+  themeCategories,
   generateSystemPromptVariables,
   generateJsonSchemaForPrompt,
   THEME_GUIDELINES,
 } from './theme-config';
 
 // Re-export types and map from config
-export type { Theme, ThemeColors, ThemeBorderRadius, ThemeShadows } from './theme-config';
+export type { Theme, ThemeColors, ThemeBorderRadius, ThemeShadows, ThemeTypography, ThemeBorders } from './theme-config';
 export { themePropertyMap } from './theme-config';
 
 // Import types for internal use
-import type { Theme, ThemeColors, ThemeBorderRadius, ThemeShadows } from './theme-config';
+import type { Theme } from './theme-config';
 
 /**
  * Get the root element for CSS variable manipulation
@@ -86,6 +89,30 @@ export function updateTheme(theme: Theme): void {
       }
     });
   }
+
+  // Process typography
+  if (theme.typography) {
+    Object.entries(theme.typography).forEach(([key, value]) => {
+      if (value !== undefined) {
+        const cssVar = themePropertyMap[`typography.${key}`];
+        if (cssVar) {
+          root.style.setProperty(cssVar, value);
+        }
+      }
+    });
+  }
+
+  // Process borders
+  if (theme.borders) {
+    Object.entries(theme.borders).forEach(([key, value]) => {
+      if (value !== undefined) {
+        const cssVar = themePropertyMap[`borders.${key}`];
+        if (cssVar) {
+          root.style.setProperty(cssVar, value);
+        }
+      }
+    });
+  }
 }
 
 /**
@@ -113,6 +140,8 @@ export function getTheme(): Theme {
     colors: {},
     borderRadius: {},
     shadows: {},
+    typography: {},
+    borders: {},
   };
 
   // Get all color values (using keys from config)
@@ -136,6 +165,22 @@ export function getTheme(): Theme {
     const cssVar = themePropertyMap[`shadows.${key}`];
     if (cssVar && theme.shadows) {
       (theme.shadows as Record<string, string>)[key] = getThemeVariable(cssVar);
+    }
+  });
+
+  // Get all typography values (using keys from config)
+  typographyKeys.forEach(key => {
+    const cssVar = themePropertyMap[`typography.${key}`];
+    if (cssVar && theme.typography) {
+      (theme.typography as Record<string, string>)[key] = getThemeVariable(cssVar);
+    }
+  });
+
+  // Get all border values (using keys from config)
+  borderKeys.forEach(key => {
+    const cssVar = themePropertyMap[`borders.${key}`];
+    if (cssVar && theme.borders) {
+      (theme.borders as Record<string, string>)[key] = getThemeVariable(cssVar);
     }
   });
 
@@ -223,17 +268,27 @@ When analyzing an image to generate a theme, consider the COMPLETE visual aesthe
   * Angular/geometric/tech/futuristic imagery → sharp corners (0 or minimal radius)
   * Organic/natural/friendly imagery → rounded corners (0.5rem - 1rem)
   * Modern/clean UI → moderate rounds (0.25rem - 0.5rem)
-- Shadows: Match the mood
-  * Dramatic/bold imagery → stronger shadows
+- Borders: Look at card/button borders in UI screenshots
+  * Thin/invisible borders → modern style ("1px solid #e5e5e5" or transparent)
+  * Thick black borders (2-3px) → brutalist style ("2px solid #000000")
+- Shadows: Match the mood AND style
+  * Soft blurred shadows → modern ("0 4px 6px -1px rgb(0 0 0 / 0.1)")
+  * Hard offset shadows (no blur) → brutalist ("4px 4px 0px #000000")
   * Soft/minimal imagery → subtle or no shadows
+- CRITICAL: Detect borders, shadows, and corners INDEPENDENTLY!
+  * Thick borders + hard shadows + rounded corners = "soft brutalism" (Gumroad, Figma style)
+  * Don't assume thick borders require sharp corners
 - Always include borderRadius when analyzing images - it's a key part of the aesthetic!
 
 Examples:
 Request: "Make it purple, square, and light mode"
-Response: {"colors":{"accent":"#9333ea","accentHover":"#7e22ce","accentText":"#ffffff","primary":"#f5f5f5","secondary":"#fafafa","tertiary":"#ffffff","sidemenu":"#fafafa","textTitle":"#171717","textSubtitle":"#404040","textBody":"#525252","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.125rem","2xl":"0.25rem"}}
+Response: {"colors":{"accent":"#9333ea","accentHover":"#7e22ce","accentText":"#ffffff","primary":"#f5f5f5","secondary":"#fafafa","tertiary":"#ffffff","sidemenu":"#fafafa","textTitle":"#171717","textSubtitle":"#404040","textBody":"#525252","textLabel":"#737373"},"borderRadius":{"sm":"0","md":"0","lg":"0.125rem","xl":"0.125rem","2xl":"0.25rem"},"shadows":{"primary":"0 4px 6px -1px rgb(0 0 0 / 0.1)","secondary":"0 2px 4px -1px rgb(0 0 0 / 0.06)","tertiary":"0 1px 2px 0 rgb(0 0 0 / 0.05)"},"borders":{"primary":"0 solid transparent","secondary":"0 solid transparent","tertiary":"1px solid #e5e5e5"}}
 
-Request: "Dark mode with blue accents and rounded corners"
-Response: {"colors":{"accent":"#3b82f6","accentHover":"#2563eb","accentText":"#ffffff","primary":"#0a0a0a","secondary":"#171717","tertiary":"#262626","sidemenu":"#171717","textTitle":"#ffffff","textSubtitle":"#e5e5e5","textBody":"#d4d4d4","textLabel":"#a3a3a3"},"borderRadius":{"sm":"0.375rem","md":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem"}}`;
+Request: "Neubrutalism theme"
+Response: {"colors":{"accent":"#ff5252","accentHover":"#e64545","accentText":"#000000","primary":"#ffffff","secondary":"#f5f5f5","tertiary":"#ffffff","sidemenu":"#ffde59","textTitle":"#000000","textSubtitle":"#1a1a1a","textBody":"#262626","textLabel":"#525252"},"borderRadius":{"sm":"0","md":"0","lg":"0","xl":"0","2xl":"0"},"shadows":{"primary":"6px 6px 0px #000000","secondary":"4px 4px 0px #000000","tertiary":"2px 2px 0px #000000"},"borders":{"primary":"3px solid #000000","secondary":"2px solid #000000","tertiary":"1px solid #000000"}}
+
+Request: "Soft brutalism / Gumroad style with pink accent"
+Response: {"colors":{"accent":"#ff90e8","accentHover":"#ff6ad5","accentText":"#000000","primary":"#f5f5f5","secondary":"#ffffff","tertiary":"#f0f0f0","sidemenu":"#fde047","textTitle":"#000000","textSubtitle":"#1f2937","textBody":"#374151","textLabel":"#6b7280"},"borderRadius":{"sm":"0.375rem","md":"0.5rem","lg":"0.75rem","xl":"1rem","2xl":"1.5rem"},"shadows":{"primary":"4px 4px 0px #000000","secondary":"3px 3px 0px #000000","tertiary":"none"},"borders":{"primary":"2px solid #000000","secondary":"2px solid #000000","tertiary":"1px solid #d1d5db"}}`;
 
 /**
  * Parse LLM response into a Theme object
@@ -265,8 +320,12 @@ export function parseThemeResponse(response: string): Theme | null {
 
     const parsed = JSON.parse(jsonStr) as Theme;
 
-    // Basic validation
-    if (!parsed.colors && !parsed.borderRadius && !parsed.shadows) {
+    // Basic validation - check if at least one valid theme category exists (derived from config)
+    const hasValidProperty = themeCategories.some(
+      category => parsed[category] && Object.keys(parsed[category] as object).length > 0
+    );
+
+    if (!hasValidProperty) {
       console.error('Invalid theme structure: no valid properties found');
       return null;
     }

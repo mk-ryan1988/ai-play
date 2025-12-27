@@ -18,7 +18,7 @@ export default function Sidenav({ isCollapsed }) {
       className={`
         fixed left-0 top-0 h-[calc(100vh-2rem)] mt-4 ml-4 z-10
         transition-all duration-300 ease-in-out p-4
-        border border-tertiary rounded-lg
+        border-primary shadow-primary rounded-lg
         w-64
         ${isCollapsed ? 'sidebar-hidden' : 'sidebar-visible'}
       `}

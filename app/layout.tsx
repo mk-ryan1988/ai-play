@@ -67,6 +67,26 @@ export default function RootLayout({
                       }
                     }
                   }
+
+                  // Apply typography
+                  if (theme.typography) {
+                    for (var key in theme.typography) {
+                      var cssVar = map['typography.' + key];
+                      if (cssVar && theme.typography[key]) {
+                        root.style.setProperty(cssVar, theme.typography[key]);
+                      }
+                    }
+                  }
+
+                  // Apply borders
+                  if (theme.borders) {
+                    for (var key in theme.borders) {
+                      var cssVar = map['borders.' + key];
+                      if (cssVar && theme.borders[key]) {
+                        root.style.setProperty(cssVar, theme.borders[key]);
+                      }
+                    }
+                  }
                 } catch (e) {
                   // Fail silently - default theme will be used
                 }
@@ -95,7 +115,7 @@ export default function RootLayout({
                   ${!isGuestRoute && !isCollapsed ? 'ml-[288px]' : 'ml-4'}
                 `}>
                   {/* Sticky header with toggle button */}
-                  <div className="sticky top-0 z-10 p-2 border-b border-tertiary bg-secondary">
+                  <div className="sticky top-0 z-10 p-2 border-b-tertiary bg-secondary">
                     <div popoverTarget="sidebar">
                       <SidebarToggle
                         isOpen={!isCollapsed}

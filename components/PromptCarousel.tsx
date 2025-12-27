@@ -109,13 +109,13 @@ const PromptCarousel = () => {
           {suggestedPrompts.map((prompt) => (
             <div
               key={prompt.id}
-              className="carousel-card flex-none w-[85%] md:w-[45%] snap-start p-6 bg-dark-secondary
-                        border border-dark-tertiary rounded-lg cursor-pointer
-                        hover:border-gray-500 transition-colors"
+              className="carousel-card flex-none w-[85%] md:w-[45%] snap-start p-6 bg-secondary
+                        border-primary shadow-primary rounded-lg cursor-pointer
+                        hover:bg-tertiary transition-colors"
               onClick={() => handleCardClick(prompt)}
             >
-              <h3 className="text-lg font-semibold mb-2">{prompt.title}</h3>
-              <p className="text-sm text-gray-400">{prompt.description}</p>
+              <h3 className="text-lg font-semibold text-title mb-2">{prompt.title}</h3>
+              <p className="text-sm text-label">{prompt.description}</p>
             </div>
           ))}
         </div>

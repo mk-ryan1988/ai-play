@@ -50,10 +50,9 @@ const config: Config = {
         full: 'var(--radius-full)',
       },
       boxShadow: {
-        sm: 'var(--shadow-sm)',
-        md: 'var(--shadow-md)',
-        lg: 'var(--shadow-lg)',
-        xl: 'var(--shadow-xl)',
+        primary: 'var(--shadow-primary)',
+        secondary: 'var(--shadow-secondary)',
+        tertiary: 'var(--shadow-tertiary)',
       },
     },
   },

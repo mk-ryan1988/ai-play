@@ -38,11 +38,18 @@
     --radius-2xl: 1rem;
     --radius-full: 9999px;
 
-    /* Shadows */
-    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    /* Shadows - hierarchical (primary=cards, secondary=buttons, tertiary=inputs) */
+    --shadow-primary: none;
+    --shadow-secondary: none;
+    --shadow-tertiary: none;
+
+    /* Typography */
+    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+    /* Borders - hierarchical (primary=cards, secondary=buttons, tertiary=inputs) */
+    --border-primary: 1px solid theme('colors.neutral.200');
+    --border-secondary: 1px solid theme('colors.neutral.200');
+    --border-tertiary: 1px solid theme('colors.neutral.200');
   }
 
   @media (prefers-color-scheme: dark) {
@@ -74,16 +81,24 @@
       --color-info-light: theme('colors.blue.950');
 
       /* Border Radius - same as light mode */
-      /* Shadows - lighter for dark mode */
-      --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
-      --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.3);
-      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.4);
-      --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+      /* Shadows - hierarchical, darker for dark mode */
+      --shadow-primary: none;
+      --shadow-secondary: none;
+      --shadow-tertiary: none;
+
+      /* Typography - same as light mode */
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+      /* Borders - hierarchical */
+      --border-primary: 1px solid theme('colors.neutral.700');
+      --border-secondary: 1px solid theme('colors.neutral.700');
+      --border-tertiary: 1px solid theme('colors.neutral.700');
     }
   }
 
   body {
     @apply bg-primary text-body;
+    font-family: var(--font-family);
   }
 
   /* Custom Scrollbar Styling */
@@ -123,6 +138,36 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Hierarchical border utilities */
+  .border-primary {
+    border: var(--border-primary);
+  }
+  .border-secondary {
+    border: var(--border-secondary);
+  }
+  .border-tertiary {
+    border: var(--border-tertiary);
+  }
+
+  /* Directional border utilities */
+  .border-b-tertiary {
+    border-bottom: var(--border-tertiary);
+  }
+  .border-t-tertiary {
+    border-top: var(--border-tertiary);
+  }
+
+  /* Hierarchical shadow utilities */
+  .shadow-primary {
+    box-shadow: var(--shadow-primary);
+  }
+  .shadow-secondary {
+    box-shadow: var(--shadow-secondary);
+  }
+  .shadow-tertiary {
+    box-shadow: var(--shadow-tertiary);
   }
 }
 

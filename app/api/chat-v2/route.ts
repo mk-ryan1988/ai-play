@@ -59,6 +59,19 @@ When users share an image:
   * Visual style - shapes and corners (sharp geometric = 0 radius, very rounded organic = 0.75rem+, moderate modern = 0.375rem)
   * Mood and atmosphere (professional, playful, minimal, bold, soft, etc.)
   * Shadow style (subtle soft shadows, dramatic hard shadows, or flat with no shadows)
+  * Border style - CRITICAL for UI screenshots:
+    - Thin/subtle/invisible borders → modern (borders.primary: "1px solid #e5e5e5")
+    - Thick black lines (2-3px) on cards → brutalist (borders.primary: "2px solid #000000")
+  * For shadows in UI screenshots:
+    - Soft blurred shadows → modern (shadows.primary: "0 4px 6px -1px rgb(0 0 0 / 0.1)")
+    - Hard offset with NO blur → brutalist (shadows.primary: "4px 4px 0px #000000")
+  * IMPORTANT: Borders/shadows are INDEPENDENT from corners!
+    - Thick borders + hard shadows + rounded corners = "soft brutalism" (Gumroad, Figma style)
+    - Detect each property separately
+  * Sidemenu color - choose based on UI style:
+    - Playful/bold UIs with colorful illustrations → use accent color from illustrations for sidemenu (e.g., yellow #fde047)
+    - Minimal/clean UIs with uniform backgrounds → sidemenu should MATCH primary background (e.g., both #e5e5e5)
+    - Do NOT default to white/black - extract from the actual image
 - If the user ALSO mentions a specific color preference in text (e.g., "red accents", "blue primary"):
   * Use ALL the image details (light/dark mode, background tones, style, mood, shadows)
   * When generating accent/interactive colors, use ONLY the user's requested color, not what appears in the image
@@ -87,6 +100,7 @@ Examples:
 - "flash bang" → Use BOTH updateTheme (light theme values) AND suggestTheme(prompt="Quick Sergio is here", action="reset")
 - [User shares image of sunset] → Use updateTheme with warm orange/purple colors, rounded corners matching the soft organic mood
 - [User shares image with "red accents"] → Use updateTheme with colors/style from image BUT use red (#dc2626) for accent colors
+- [User shares Gumroad/playful UI] → Detect thick black borders + hard shadows + rounded corners → Generate soft brutalism theme with borders.primary: "2px solid #000000", shadows.primary: "4px 4px 0px #000000", borderRadius.lg: "0.75rem"
 - "hi" → Respond: "Hello! I can help you customize your theme. Want to try a new color or style?"`;
 
 interface ChatMessage {
@@ -104,6 +118,8 @@ interface ActionResult {
     colors?: Theme['colors'];
     borderRadius?: Theme['borderRadius'];
     shadows?: Theme['shadows'];
+    typography?: Theme['typography'];
+    borders?: Theme['borders'];
     prompt?: string; // for suggestTheme
     action?: string; // for suggestTheme
   };
@@ -199,6 +215,8 @@ export async function POST(request: NextRequest) {
             colors: functionCall.args.colors as Theme['colors'],
             borderRadius: functionCall.args.borderRadius as Theme['borderRadius'],
             shadows: functionCall.args.shadows as Theme['shadows'],
+            typography: functionCall.args.typography as Theme['typography'],
+            borders: functionCall.args.borders as Theme['borders'],
           };
 
           actions.push({

@@ -92,7 +92,7 @@ export default function ChatInput() {
   };
 
   return (
-    <div className="border-t border-tertiary bg-secondary">
+    <div className="border-t-tertiary bg-secondary">
       {/* Image preview */}
       {selectedImage && (
         <div className="p-4 pb-0">
@@ -100,7 +100,7 @@ export default function ChatInput() {
             <img
               src={selectedImage.preview}
               alt="Selected"
-              className="h-24 w-24 object-cover rounded-lg border border-tertiary"
+              className="h-24 w-24 object-cover rounded-lg border-tertiary"
             />
             <button
               onClick={handleRemoveImage}
@@ -114,7 +114,7 @@ export default function ChatInput() {
       )}
 
       <div className="relative flex items-end gap-2 p-4">
-        <div className="flex-1 border border-tertiary rounded-lg bg-primary">
+        <div className="flex-1 border-tertiary rounded-lg bg-primary">
           <EditorContent editor={editor} />
         </div>
 
@@ -129,7 +129,7 @@ export default function ChatInput() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={isGenerating}
-          className="flex items-center justify-center w-10 h-10 bg-secondary border border-tertiary hover:bg-tertiary text-body rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center w-10 h-10 bg-secondary border-tertiary shadow-tertiary hover:bg-tertiary text-body rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Upload image"
         >
           <PhotoIcon className="w-5 h-5" />
@@ -138,7 +138,7 @@ export default function ChatInput() {
         <button
           onClick={handleSubmit}
           disabled={isGenerating || (!editor?.getText().trim() && !selectedImage)}
-          className="flex items-center justify-center w-10 h-10 bg-accent hover:bg-accent-hover text-accent-text rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex items-center justify-center w-10 h-10 bg-accent border-secondary shadow-secondary hover:bg-accent-hover text-accent-text rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           aria-label="Send message"
         >
           <PaperAirplaneIcon className="w-5 h-5" />
