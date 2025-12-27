@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { useThemeOptional } from './ThemeContext';
+import { useModel } from './ModelContext';
 import type { Theme } from '@/utils/theme';
 
 export interface ActionMetadata {
@@ -47,6 +48,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUpdatingTheme, setIsUpdatingTheme] = useState(false);
   const themeContext = useThemeOptional();
+  const { selectedModel } = useModel();
 
   // Load messages from localStorage on mount
   useEffect(() => {
@@ -99,10 +101,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         ...(msg.image && { image: msg.image }),
       }));
 
-      // const chatRoute = '/api/chat';
-      const chatRoute = '/api/chat-v2'; // Use v2 by default
+      // Route to correct API based on model capabilities
+      // v2 = function calling (direct structured output)
+      // v1 = JSON parsing from text response
+      const chatRoute = selectedModel.supportsFunctionCalling ? '/api/chat-v2' : '/api/chat';
 
-      // Call the chat API (v2 = single-stage, faster and more accurate)
+      // Call the chat API
       const response = await fetch(chatRoute, {
         method: 'POST',
         headers: {
@@ -111,6 +115,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({
           messages: messageHistory,
           currentTheme,
+          model: selectedModel.id,
         }),
       });
 
@@ -172,7 +177,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsGenerating(false);
     }
-  }, [messages, themeContext]);
+  }, [messages, themeContext, selectedModel]);
 
   const clearMessages = useCallback(() => {
     setMessages([]);

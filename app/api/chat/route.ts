@@ -134,7 +134,7 @@ interface ActionResult {
   };
 }
 
-async function executeUpdateTheme(description: string, currentTheme?: Theme): Promise<ActionResult['result']> {
+async function executeUpdateTheme(description: string, currentTheme?: Theme, modelId: string = 'gemini-2.5-flash-lite'): Promise<ActionResult['result']> {
   try {
     if (!process.env.GEMINI_API_KEY) {
       throw new Error('API key not configured');
@@ -151,7 +151,7 @@ async function executeUpdateTheme(description: string, currentTheme?: Theme): Pr
     // Initialize Gemini client and generate theme directly
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: modelId,
       contents: `${THEME_SYSTEM_PROMPT}\n\nUser request: ${prompt}`,
     });
 
@@ -183,7 +183,7 @@ async function executeUpdateTheme(description: string, currentTheme?: Theme): Pr
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, currentTheme } = await request.json();
+    const { messages, currentTheme, model = 'gemini-2.5-flash-lite' } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -232,7 +232,7 @@ export async function POST(request: NextRequest) {
 
     // Call Gemini with function calling enabled
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model,
       contents: geminiMessages,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
@@ -261,7 +261,7 @@ export async function POST(request: NextRequest) {
         if (functionCall.name === 'updateTheme' && functionCall.args) {
           console.log('updateTheme call detected:', functionCall);
           const description = functionCall.args.description as string;
-          const result = await executeUpdateTheme(description, currentTheme);
+          const result = await executeUpdateTheme(description, currentTheme, model);
 
           actions.push({
             type: 'updateTheme',

@@ -9,6 +9,7 @@ import Sidenav from '@/components/Navigation/Sidenav';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { DialogProvider } from "@/contexts/DialogContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { ModelProvider } from "@/contexts/ModelContext";
 import SidebarToggle from "@/components/Navigation/SidebarToggle";
 import { themePropertyMap } from "@/utils/theme";
 
@@ -97,9 +98,10 @@ export default function RootLayout({
       </head>
       <body className={`antialiased`}>
         <ThemeProvider autoLoad={true}>
-          <OrganizationProvider>
-            <DialogProvider>
-              <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
+          <ModelProvider>
+            <OrganizationProvider>
+              <DialogProvider>
+                <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
                 {/* Side Menu */}
                 {!isGuestRoute && <Sidenav
                   isCollapsed={isCollapsed}
@@ -130,8 +132,9 @@ export default function RootLayout({
                   </div>
                 </main>
               </div>
-            </DialogProvider>
-          </OrganizationProvider>
+              </DialogProvider>
+            </OrganizationProvider>
+          </ModelProvider>
         </ThemeProvider>
       </body>
     </html>

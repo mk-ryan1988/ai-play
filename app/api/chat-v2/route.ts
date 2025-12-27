@@ -131,7 +131,7 @@ interface ActionResult {
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages, currentTheme } = await request.json();
+    const { messages, currentTheme, model = 'gemini-2.5-flash' } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
       return NextResponse.json(
@@ -180,7 +180,7 @@ export async function POST(request: NextRequest) {
 
     // Call Gemini with function calling enabled
     const response = await genAI.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model,
       contents: geminiMessages,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
