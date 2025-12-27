@@ -118,7 +118,7 @@ export default function RootLayout({
                 `}>
                   {/* Sticky header with toggle button */}
                   <div className="sticky top-0 z-10 p-2 border-b-tertiary bg-secondary">
-                    <div popoverTarget="sidebar">
+                    <div popovertarget="sidebar">
                       <SidebarToggle
                         isOpen={!isCollapsed}
                         onClick={() => setIsCollapsed(!isCollapsed)}
