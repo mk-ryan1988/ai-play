@@ -197,6 +197,20 @@
   animation: cursor-blink 1s step-end infinite;
 }
 
+/* Typing text animation for streaming messages */
+.typing-text {
+  animation: typing-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes typing-pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
 .ProseMirror {
   min-height: 100px;
   color: theme('colors.title');
