@@ -91,7 +91,7 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
         )}
 
         {/* Message Content */}
-        {message.content && (
+        {(message.content || message.isStreaming) && (
           <div
             className="bg-secondary border border-tertiary px-4 py-2"
             style={{
@@ -99,7 +99,10 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
               borderTopLeftRadius: 'calc(var(--radius-2xl) * 0.15)',
             }}
           >
-            <p className="text-sm text-body whitespace-pre-wrap">{message.content}</p>
+            <p className="text-sm text-body whitespace-pre-wrap">
+              {message.content}
+              {message.isStreaming && <span className="streaming-cursor" />}
+            </p>
           </div>
         )}
 

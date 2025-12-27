@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { GoogleGenAI, FunctionCallingConfigMode, Type } from '@google/genai';
 import type { FunctionDeclaration } from '@google/genai';
 import type { Theme } from '@/utils/theme';
 import { THEME_SYSTEM_PROMPT, parseThemeResponse } from '@/utils/theme';
+import { sendSSE, SSE_HEADERS } from '@/utils/stream';
 
 // Define the updateTheme function/tool for Gemini
 const updateThemeTool: FunctionDeclaration = {
@@ -186,21 +187,21 @@ export async function POST(request: NextRequest) {
     const { messages, currentTheme, model = 'gemini-2.5-flash-lite' } = await request.json();
 
     if (!messages || !Array.isArray(messages)) {
-      return NextResponse.json(
-        { error: 'Messages array is required' },
-        { status: 400 }
+      return new Response(
+        JSON.stringify({ error: 'Messages array is required' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
     if (!process.env.GEMINI_API_KEY) {
       console.error('GEMINI_API_KEY not configured');
-      return NextResponse.json(
-        { error: 'API key not configured' },
-        { status: 500 }
+      return new Response(
+        JSON.stringify({ error: 'API key not configured' }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Chat request:', { messageCount: messages.length, hasCurrentTheme: !!currentTheme });
+    console.log('Chat streaming request:', { messageCount: messages.length, model });
 
     // Initialize Gemini client
     const genAI = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -209,12 +210,10 @@ export async function POST(request: NextRequest) {
     const geminiMessages = messages.map((msg: ChatMessage) => {
       const parts: Array<{ text?: string; inlineData?: { mimeType: string; data: string } }> = [];
 
-      // Add text content if present
       if (msg.content) {
         parts.push({ text: msg.content });
       }
 
-      // Add image if present
       if (msg.image) {
         parts.push({
           inlineData: {
@@ -230,8 +229,8 @@ export async function POST(request: NextRequest) {
       };
     });
 
-    // Call Gemini with function calling enabled
-    const response = await genAI.models.generateContent({
+    // Call Gemini with streaming enabled
+    const streamResponse = await genAI.models.generateContentStream({
       model,
       contents: geminiMessages,
       config: {
@@ -247,65 +246,84 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log('Gemini response:', JSON.stringify(response, null, 2));
+    // Create SSE stream
+    const stream = new ReadableStream({
+      async start(controller) {
+        const encoder = new TextEncoder();
+        const collectedFunctionCalls: Array<{ name: string; args: Record<string, unknown> }> = [];
 
-    // Check if the model made function calls (can be multiple)
-    const functionCalls = response.functionCalls || [];
+        try {
+          for await (const chunk of streamResponse) {
+            // Stream text content
+            if (chunk.text) {
+              sendSSE(controller, encoder, { type: 'text', content: chunk.text });
+            }
 
-    if (functionCalls.length > 0) {
-      const actions: ActionResult[] = [];
-      let responseMessage = '';
-
-      // Process all function calls
-      for (const functionCall of functionCalls) {
-        if (functionCall.name === 'updateTheme' && functionCall.args) {
-          console.log('updateTheme call detected:', functionCall);
-          const description = functionCall.args.description as string;
-          const result = await executeUpdateTheme(description, currentTheme, model);
-
-          actions.push({
-            type: 'updateTheme',
-            parameters: { description },
-            result,
-          });
-
-          if (result.success) {
-            responseMessage = `✨ Applied ${description}!`;
+            // Collect function calls
+            const functionCalls = chunk.functionCalls || [];
+            for (const fc of functionCalls) {
+              if (fc.name && fc.args) {
+                collectedFunctionCalls.push({
+                  name: fc.name,
+                  args: fc.args as Record<string, unknown>,
+                });
+              }
+            }
           }
-        } else if (functionCall.name === 'suggestTheme' && functionCall.args) {
-          console.log('suggestTheme call detected:', functionCall);
-          const prompt = functionCall.args.prompt as string;
-          const action = functionCall.args.action as string;
 
-          actions.push({
-            type: 'suggestTheme',
-            parameters: { prompt, action },
-            result: { success: true },
+          // Process collected function calls after stream completes
+          // This route uses a second LLM call to generate theme JSON
+          for (const fc of collectedFunctionCalls) {
+            if (fc.name === 'updateTheme') {
+              const description = fc.args.description as string;
+              const result = await executeUpdateTheme(description, currentTheme, model);
+
+              const action: ActionResult = {
+                type: 'updateTheme',
+                parameters: { description },
+                result,
+              };
+
+              sendSSE(controller, encoder, { type: 'action', action });
+            } else if (fc.name === 'suggestTheme') {
+              const action: ActionResult = {
+                type: 'suggestTheme',
+                parameters: {
+                  prompt: fc.args.prompt as string,
+                  action: fc.args.action as string,
+                },
+                result: { success: true },
+              };
+
+              sendSSE(controller, encoder, { type: 'action', action });
+            }
+          }
+
+          sendSSE(controller, encoder, { type: 'done' });
+        } catch (error) {
+          console.error('Streaming error:', error);
+          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const isRateLimited = errorMessage.includes('429') || errorMessage.includes('RESOURCE_EXHAUSTED') || errorMessage.includes('quota');
+
+          sendSSE(controller, encoder, {
+            type: 'error',
+            error: isRateLimited ? 'RATE_LIMITED' : errorMessage,
           });
+        } finally {
+          controller.close();
         }
-      }
+      },
+    });
 
-      return NextResponse.json({
-        message: responseMessage,
-        actions, // Return array of actions
-      });
-    } else {
-      // Model decided to just respond conversationally
-      const textResponse = response.text || "I'm here to help with your theme! Try asking me to change colors or styles.";
-
-      return NextResponse.json({
-        message: textResponse,
-      });
-    }
+    return new Response(stream, { headers: SSE_HEADERS });
 
   } catch (error) {
     console.error('Chat API error:', error);
-    return NextResponse.json(
-      {
-        error: 'Failed to process chat message',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    return new Response(
+      JSON.stringify({ error: 'Failed to process chat message', details: errorMessage }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }
 }

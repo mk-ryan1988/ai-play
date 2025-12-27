@@ -29,6 +29,7 @@ export interface Message {
     data: string; // base64 encoded image
     mimeType: string; // e.g., "image/jpeg", "image/png"
   };
+  isStreaming?: boolean; // True while message is being streamed
 }
 
 interface ChatContextType {
@@ -68,8 +69,12 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Save messages to localStorage whenever they change
+  // Save messages to localStorage whenever they change (but not during streaming)
   useEffect(() => {
+    // Don't save while any message is streaming
+    const hasStreamingMessage = messages.some(m => m.isStreaming);
+    if (hasStreamingMessage) return;
+
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
     } catch (error) {
@@ -90,6 +95,17 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
     setMessages((prev) => [...prev, userMessage]);
     setIsGenerating(true);
 
+    // Create placeholder assistant message for streaming
+    const assistantMessageId = (Date.now() + 1).toString();
+    const streamingMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: new Date(),
+      isStreaming: true,
+    };
+    setMessages((prev) => [...prev, streamingMessage]);
+
     try {
       // Get current theme if available
       const currentTheme = themeContext?.currentTheme;
@@ -102,11 +118,9 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       }));
 
       // Route to correct API based on model capabilities
-      // v2 = function calling (direct structured output)
-      // v1 = JSON parsing from text response
       const chatRoute = selectedModel.supportsFunctionCalling ? '/api/chat-v2' : '/api/chat';
 
-      // Call the chat API
+      // Call the chat API (now returns SSE stream)
       const response = await fetch(chatRoute, {
         method: 'POST',
         headers: {
@@ -119,61 +133,108 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
         }),
       });
 
-      const data = await response.json();
-
-      // Check for rate limit error
+      // Check for non-streaming error responses
       if (!response.ok) {
-        if (response.status === 429 || data.errorCode === 'RATE_LIMITED') {
-          alert('⚠️ Rate limit exceeded!\n\nYou\'ve hit the API quota limit. Please wait a minute and try again.');
-          throw new Error('Rate limited');
+        const contentType = response.headers.get('content-type');
+        if (contentType?.includes('application/json')) {
+          const data = await response.json();
+          if (response.status === 429 || data.errorCode === 'RATE_LIMITED') {
+            alert('⚠️ Rate limit exceeded!\n\nYou\'ve hit the API quota limit. Please wait a minute and try again.');
+          }
         }
         throw new Error(`API error: ${response.status}`);
       }
 
-      // Handle actions (can be multiple)
-      const actions = data.actions || [];
-
-      // Check if any action failed
-      const hasFailedAction = actions.some((action: ActionMetadata) => !action.result.success);
-      if (hasFailedAction) {
-        setIsGenerating(false);
+      // Process SSE stream
+      if (!response.body) {
+        throw new Error('No response body');
       }
 
-      // Process theme update actions
-      for (const action of actions) {
-        if (action.type === 'updateTheme' && action.result.success) {
-          setIsUpdatingTheme(true); // Show shimmer overlay during theme update
-          if (themeContext && action.result.theme) {
-            themeContext.updateTheme(action.result.theme);
-            themeContext.saveTheme(); // Save to localStorage
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let accumulatedContent = '';
+      const collectedActions: ActionMetadata[] = [];
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || ''; // Keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6); // Remove "data: "
+          if (!jsonStr.trim()) continue;
+
+          try {
+            const event = JSON.parse(jsonStr);
+
+            switch (event.type) {
+              case 'text':
+                accumulatedContent += event.content;
+                // Update message content progressively
+                setMessages((prev) => prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: accumulatedContent }
+                    : msg
+                ));
+                break;
+
+              case 'action':
+                collectedActions.push(event.action as ActionMetadata);
+                // Process theme updates immediately
+                if (event.action.type === 'updateTheme' && event.action.result?.success) {
+                  setIsUpdatingTheme(true);
+                  if (themeContext && event.action.result.theme) {
+                    themeContext.updateTheme(event.action.result.theme);
+                    themeContext.saveTheme();
+                  }
+                  setTimeout(() => setIsUpdatingTheme(false), 500);
+                }
+                break;
+
+              case 'error':
+                if (event.error === 'RATE_LIMITED') {
+                  alert('⚠️ Rate limit exceeded!\n\nYou\'ve hit the API quota limit. Please wait a minute and try again.');
+                }
+                throw new Error(event.error);
+
+              case 'done':
+                // Finalize the message
+                setMessages((prev) => prev.map((msg) =>
+                  msg.id === assistantMessageId
+                    ? {
+                        ...msg,
+                        content: accumulatedContent,
+                        actions: collectedActions.length > 0 ? collectedActions : undefined,
+                        isStreaming: false,
+                      }
+                    : msg
+                ));
+                break;
+            }
+          } catch (parseError) {
+            console.error('Failed to parse SSE event:', parseError);
           }
-          // Brief delay to let the shimmer effect be visible
-          setTimeout(() => setIsUpdatingTheme(false), 500);
         }
       }
-
-      // Add assistant message with actions metadata
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: data.message || '',
-        timestamp: new Date(),
-        actions: actions.length > 0 ? actions : undefined,
-      };
-
-      setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('Failed to send message:', error);
 
-      // Add error message
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'assistant',
-        content: 'Sorry, I encountered an error processing your request.',
-        timestamp: new Date(),
-      };
-
-      setMessages((prev) => [...prev, errorMessage]);
+      // Update the streaming message to show error
+      setMessages((prev) => prev.map((msg) =>
+        msg.id === assistantMessageId
+          ? {
+              ...msg,
+              content: msg.content || 'Sorry, I encountered an error processing your request.',
+              isStreaming: false,
+            }
+          : msg
+      ));
     } finally {
       setIsGenerating(false);
     }
