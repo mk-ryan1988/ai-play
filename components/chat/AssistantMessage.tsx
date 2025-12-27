@@ -1,6 +1,13 @@
-import { Message } from '@/contexts/ChatContext';
-import { CheckCircleIcon, XCircleIcon, PaintBrushIcon, SparklesIcon } from '@heroicons/react/24/solid';
+import { Message, ActionMetadata } from '@/contexts/ChatContext';
+import { CheckCircleIcon, XCircleIcon, PaintBrushIcon, SparklesIcon, ExclamationTriangleIcon, WrenchScrewdriverIcon } from '@heroicons/react/24/solid';
 import { useThemeOptional } from '@/contexts/ThemeContext';
+
+// Friendly names for function calls
+const FUNCTION_DISPLAY_NAMES: Record<ActionMetadata['type'], string> = {
+  updateTheme: 'Update Theme',
+  suggestTheme: 'Suggest Theme',
+  checkAccessibility: 'Check Accessibility',
+};
 
 interface AssistantMessageProps {
   message: Message;
@@ -12,6 +19,7 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
 
   const themeAction = actions.find(a => a.type === 'updateTheme');
   const suggestionAction = actions.find(a => a.type === 'suggestTheme');
+  const accessibilityAction = actions.find(a => a.type === 'checkAccessibility');
 
   const hasThemeAction = !!themeAction;
   const actionSuccess = themeAction?.result.success;
@@ -26,6 +34,16 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
   return (
     <div className="flex justify-start mb-4">
       <div className="max-w-[70%]">
+        {/* Function Calls Badge */}
+        {actions.length > 0 && (
+          <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-tertiary/50 border border-tertiary rounded-lg w-fit">
+            <WrenchScrewdriverIcon className="w-3.5 h-3.5 text-label" />
+            <span className="text-xs text-label">
+              Called: {actions.map(a => FUNCTION_DISPLAY_NAMES[a.type]).join(', ')}
+            </span>
+          </div>
+        )}
+
         {/* Action Badge */}
         {hasThemeAction && themeAction && (
           <div className="flex items-center gap-2 mb-2 px-3 py-1.5 bg-tertiary border border-tertiary rounded-lg w-fit">
@@ -74,6 +92,53 @@ export default function AssistantMessage({ message }: AssistantMessageProps) {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Accessibility Check Results */}
+        {accessibilityAction && (
+          <div className="mb-2 px-3 py-2 bg-tertiary border border-tertiary rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              {accessibilityAction.result.passed ? (
+                <>
+                  <CheckCircleIcon className="w-4 h-4 text-green-500" />
+                  <span className="text-xs text-label font-medium">
+                    Accessibility Check Passed
+                  </span>
+                </>
+              ) : (
+                <>
+                  <ExclamationTriangleIcon className="w-4 h-4 text-yellow-500" />
+                  <span className="text-xs text-label font-medium">
+                    Adjusted {accessibilityAction.result.adjustments?.length || 0} colors for accessibility
+                  </span>
+                </>
+              )}
+            </div>
+
+            {/* Show adjustments if any */}
+            {accessibilityAction.result.adjustments && accessibilityAction.result.adjustments.length > 0 && (
+              <div className="space-y-1.5">
+                {accessibilityAction.result.adjustments.map((adj, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-body">
+                    <div
+                      className="w-5 h-5 rounded border border-tertiary"
+                      style={{ backgroundColor: adj.originalValue }}
+                      title={adj.originalValue}
+                    />
+                    <span className="text-label">→</span>
+                    <div
+                      className="w-5 h-5 rounded border border-tertiary"
+                      style={{ backgroundColor: adj.adjustedValue }}
+                      title={adj.adjustedValue}
+                    />
+                    <span className="text-label">
+                      {adj.colorKey}: {adj.originalRatio}:1 → {adj.adjustedRatio}:1
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 

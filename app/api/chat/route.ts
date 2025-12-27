@@ -2,7 +2,7 @@ import { NextRequest } from 'next/server';
 import { GoogleGenAI, FunctionCallingConfigMode, Type } from '@google/genai';
 import type { FunctionDeclaration } from '@google/genai';
 import type { Theme } from '@/utils/theme';
-import { THEME_SYSTEM_PROMPT, parseThemeResponse } from '@/utils/theme';
+import { THEME_SYSTEM_PROMPT, parseThemeResponse, checkAccessibility } from '@/utils/theme';
 import { sendSSE, SSE_HEADERS } from '@/utils/stream';
 
 // Define the updateTheme function/tool for Gemini
@@ -38,6 +38,16 @@ const suggestThemeTool: FunctionDeclaration = {
       },
     },
     required: ['prompt', 'action'],
+  },
+};
+
+// Define the checkAccessibility function/tool for Gemini
+const checkAccessibilityTool: FunctionDeclaration = {
+  name: 'checkAccessibility',
+  description: 'Checks the current theme for WCAG AA accessibility compliance and auto-adjusts colors that fail contrast requirements. Use this after applying a theme when the user mentions accessibility, readability, or contrast, or when you think the theme may have contrast issues.',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {},
   },
 };
 
@@ -122,7 +132,7 @@ interface ChatMessage {
 }
 
 interface ActionResult {
-  type: 'updateTheme' | 'suggestTheme';
+  type: 'updateTheme' | 'suggestTheme' | 'checkAccessibility';
   parameters: {
     description?: string; // for updateTheme
     prompt?: string; // for suggestTheme
@@ -132,6 +142,16 @@ interface ActionResult {
     success: boolean;
     theme?: Theme;
     error?: string;
+    passed?: boolean; // for checkAccessibility
+    adjustments?: Array<{
+      colorKey: string;
+      originalValue: string;
+      adjustedValue: string;
+      contrastWith: string;
+      originalRatio: number;
+      adjustedRatio: number;
+      requirement: number;
+    }>;
   };
 }
 
@@ -236,7 +256,7 @@ export async function POST(request: NextRequest) {
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         tools: [{
-          functionDeclarations: [updateThemeTool, suggestThemeTool]
+          functionDeclarations: [updateThemeTool, suggestThemeTool, checkAccessibilityTool]
         }],
         toolConfig: {
           functionCallingConfig: {
@@ -296,6 +316,24 @@ export async function POST(request: NextRequest) {
               };
 
               sendSSE(controller, encoder, { type: 'action', action });
+            } else if (fc.name === 'checkAccessibility') {
+              // Use the current theme from the request
+              if (currentTheme) {
+                const result = checkAccessibility(currentTheme);
+
+                const action: ActionResult = {
+                  type: 'checkAccessibility',
+                  parameters: {},
+                  result: {
+                    success: true,
+                    passed: result.passed,
+                    adjustments: result.adjustments,
+                    theme: result.adjustedTheme,
+                  },
+                };
+
+                sendSSE(controller, encoder, { type: 'action', action });
+              }
             }
           }
 

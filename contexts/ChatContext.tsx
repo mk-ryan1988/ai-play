@@ -6,7 +6,7 @@ import { useModel } from './ModelContext';
 import type { Theme } from '@/utils/theme';
 
 export interface ActionMetadata {
-  type: 'updateTheme' | 'suggestTheme';
+  type: 'updateTheme' | 'suggestTheme' | 'checkAccessibility';
   parameters: {
     description?: string; // for updateTheme
     prompt?: string; // for suggestTheme
@@ -16,6 +16,16 @@ export interface ActionMetadata {
     success: boolean;
     theme?: Theme;
     error?: string;
+    passed?: boolean; // for checkAccessibility
+    adjustments?: Array<{
+      colorKey: string;
+      originalValue: string;
+      adjustedValue: string;
+      contrastWith: string;
+      originalRatio: number;
+      adjustedRatio: number;
+      requirement: number;
+    }>;
   };
 }
 
@@ -188,6 +198,15 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
                 collectedActions.push(event.action as ActionMetadata);
                 // Process theme updates immediately
                 if (event.action.type === 'updateTheme' && event.action.result?.success) {
+                  setIsUpdatingTheme(true);
+                  if (themeContext && event.action.result.theme) {
+                    themeContext.updateTheme(event.action.result.theme);
+                    themeContext.saveTheme();
+                  }
+                  setTimeout(() => setIsUpdatingTheme(false), 500);
+                }
+                // Process accessibility check results - apply adjusted theme
+                if (event.action.type === 'checkAccessibility' && event.action.result?.success) {
                   setIsUpdatingTheme(true);
                   if (themeContext && event.action.result.theme) {
                     themeContext.updateTheme(event.action.result.theme);

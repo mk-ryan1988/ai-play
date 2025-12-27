@@ -142,6 +142,237 @@ export function isLightColor(hex: string): boolean {
   return (r * 299 + g * 587 + b * 114) / 1000 > 128;
 }
 
+// ============================================================================
+// WCAG 2.1 Contrast Utilities
+// ============================================================================
+
+/**
+ * Convert hex color to RGB values (0-255)
+ */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const c = hex.replace('#', '');
+  return {
+    r: parseInt(c.slice(0, 2), 16),
+    g: parseInt(c.slice(2, 4), 16),
+    b: parseInt(c.slice(4, 6), 16),
+  };
+}
+
+/**
+ * Linearize an sRGB channel value per WCAG 2.1 spec
+ * @param channel - Channel value (0-255)
+ */
+function linearize(channel: number): number {
+  const c = channel / 255;
+  return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+
+/**
+ * Calculate relative luminance per WCAG 2.1
+ * L = 0.2126 * R + 0.7152 * G + 0.0722 * B
+ */
+export function getRelativeLuminance(hex: string): number {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b);
+}
+
+/**
+ * Calculate WCAG contrast ratio between two colors
+ * Ratio = (L1 + 0.05) / (L2 + 0.05) where L1 is the lighter color
+ */
+export function getContrastRatio(color1: string, color2: string): number {
+  const l1 = getRelativeLuminance(color1);
+  const l2 = getRelativeLuminance(color2);
+  const lighter = Math.max(l1, l2);
+  const darker = Math.min(l1, l2);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+/**
+ * Convert RGB to HSL
+ */
+function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+  r /= 255;
+  g /= 255;
+  b /= 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const l = (max + min) / 2;
+  let h = 0;
+  let s = 0;
+
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h, s, l };
+}
+
+/**
+ * Convert HSL to hex
+ */
+function hslToHex(h: number, s: number, l: number): string {
+  const hue2rgb = (p: number, q: number, t: number) => {
+    if (t < 0) t += 1;
+    if (t > 1) t -= 1;
+    if (t < 1/6) return p + (q - p) * 6 * t;
+    if (t < 1/2) return q;
+    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+    return p;
+  };
+
+  let r, g, b;
+  if (s === 0) {
+    r = g = b = l;
+  } else {
+    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+    const p = 2 * l - q;
+    r = hue2rgb(p, q, h + 1/3);
+    g = hue2rgb(p, q, h);
+    b = hue2rgb(p, q, h - 1/3);
+  }
+
+  const toHex = (x: number) => {
+    const hex = Math.round(x * 255).toString(16);
+    return hex.length === 1 ? '0' + hex : hex;
+  };
+
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+/**
+ * Adjust a foreground color to meet minimum contrast ratio against a background
+ * Uses binary search on HSL lightness to find the minimal adjustment
+ */
+function adjustColorForContrast(
+  foreground: string,
+  background: string,
+  minRatio: number
+): string {
+  const currentRatio = getContrastRatio(foreground, background);
+  if (currentRatio >= minRatio) return foreground;
+
+  const { r, g, b } = hexToRgb(foreground);
+  const { h, s } = rgbToHsl(r, g, b);
+  const bgLuminance = getRelativeLuminance(background);
+
+  // Determine direction: if bg is dark, make fg lighter; if bg is light, make fg darker
+  const shouldLighten = bgLuminance < 0.5;
+
+  let low = shouldLighten ? 0.5 : 0;
+  let high = shouldLighten ? 1 : 0.5;
+  let bestL = shouldLighten ? 1 : 0;
+
+  // Binary search for the minimum adjustment that meets the contrast requirement
+  for (let i = 0; i < 20; i++) {
+    const mid = (low + high) / 2;
+    const testColor = hslToHex(h, s, mid);
+    const ratio = getContrastRatio(testColor, background);
+
+    if (ratio >= minRatio) {
+      bestL = mid;
+      if (shouldLighten) {
+        high = mid; // Try darker (closer to original)
+      } else {
+        low = mid; // Try lighter (closer to original)
+      }
+    } else {
+      if (shouldLighten) {
+        low = mid; // Need to go lighter
+      } else {
+        high = mid; // Need to go darker
+      }
+    }
+  }
+
+  return hslToHex(h, s, bestL);
+}
+
+// ============================================================================
+// Accessibility Check
+// ============================================================================
+
+export interface AccessibilityAdjustment {
+  colorKey: string;
+  originalValue: string;
+  adjustedValue: string;
+  contrastWith: string;
+  originalRatio: number;
+  adjustedRatio: number;
+  requirement: number;
+}
+
+export interface AccessibilityCheckResult {
+  passed: boolean;
+  adjustments: AccessibilityAdjustment[];
+  adjustedTheme: Theme;
+}
+
+/**
+ * Color pairs to check for WCAG AA compliance
+ * Format: [foregroundKey, backgroundKey, minRatio]
+ */
+const CONTRAST_PAIRS: [string, string, number][] = [
+  ['textTitle', 'primary', 4.5],
+  ['textSubtitle', 'secondary', 4.5],
+  ['textBody', 'primary', 4.5],
+  ['textBody', 'secondary', 4.5],
+  ['textLabel', 'tertiary', 4.5],
+  ['accentText', 'accent', 4.5],
+  ['success', 'primary', 3],
+  ['warning', 'primary', 3],
+  ['error', 'primary', 3],
+  ['accent', 'primary', 3],
+];
+
+/**
+ * Check theme colors for WCAG AA accessibility compliance
+ * and auto-adjust colors that fail contrast requirements
+ */
+export function checkAccessibility(theme: Theme): AccessibilityCheckResult {
+  const adjustments: AccessibilityAdjustment[] = [];
+  const adjustedTheme: Theme = JSON.parse(JSON.stringify(theme));
+  const colors = theme.colors || {};
+  const adjustedColors = adjustedTheme.colors || {};
+
+  for (const [fgKey, bgKey, minRatio] of CONTRAST_PAIRS) {
+    const fgColor = colors[fgKey as keyof typeof colors];
+    const bgColor = colors[bgKey as keyof typeof colors];
+
+    if (!fgColor || !bgColor) continue;
+
+    const originalRatio = getContrastRatio(fgColor, bgColor);
+
+    if (originalRatio < minRatio) {
+      const adjustedColor = adjustColorForContrast(fgColor, bgColor, minRatio);
+      const adjustedRatio = getContrastRatio(adjustedColor, bgColor);
+
+      (adjustedColors as Record<string, string>)[fgKey] = adjustedColor;
+
+      adjustments.push({
+        colorKey: fgKey,
+        originalValue: fgColor,
+        adjustedValue: adjustedColor,
+        contrastWith: bgKey,
+        originalRatio: Math.round(originalRatio * 100) / 100,
+        adjustedRatio: Math.round(adjustedRatio * 100) / 100,
+        requirement: minRatio,
+      });
+    }
+  }
+
+  return {
+    passed: adjustments.length === 0,
+    adjustments,
+    adjustedTheme,
+  };
+}
+
 /**
  * Get the current theme as an object
  * @returns Theme object with all current values
