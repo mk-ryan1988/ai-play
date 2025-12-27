@@ -6,7 +6,6 @@ import { guestRoutes } from './routes'
 import { usePathname } from 'next/navigation';
 import { useWindowWidth } from '../hooks/useWindowWidth';
 import Sidenav from '@/components/Navigation/Sidenav';
-import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { DialogProvider } from "@/contexts/DialogContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ModelProvider } from "@/contexts/ModelContext";
@@ -25,7 +24,7 @@ export default function RootLayout({
   const isGuestRoute = guestRoutes.includes(pathname);
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Inline script to prevent theme flicker - loads theme before React hydration */}
         <script
@@ -99,8 +98,7 @@ export default function RootLayout({
       <body className={`antialiased`}>
         <ThemeProvider autoLoad={true}>
           <ModelProvider>
-            <OrganizationProvider>
-              <DialogProvider>
+            <DialogProvider>
                 <div className="flex gap-2 min-h-screen max-w-screen bg-primary">
                 {/* Side Menu */}
                 {!isGuestRoute && <Sidenav
@@ -133,7 +131,6 @@ export default function RootLayout({
                 </main>
               </div>
               </DialogProvider>
-            </OrganizationProvider>
           </ModelProvider>
         </ThemeProvider>
       </body>
