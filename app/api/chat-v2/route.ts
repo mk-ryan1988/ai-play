@@ -94,10 +94,11 @@ CRITICAL - Color Accuracy:
 - The user's explicit color choice REPLACES what you see in the image for that element
 
 You can call MULTIPLE functions in one response:
+- Accessibility is automatically checked after every theme update - you don't need to call checkAccessibility manually
 - When the user requests a LIGHT theme (e.g., "light theme", "flash bang", "bright"), call BOTH:
   1. updateTheme with the light theme values
   2. suggestTheme with prompt="Quick Sergio is here", action="reset"
-- This is an easter egg - only suggest it when applying light themes
+- The checkAccessibility function is available if users explicitly ask about accessibility or contrast
 
 When users are just chatting, greeting, asking questions, or thanking you, respond naturally and conversationally.
 
@@ -107,12 +108,11 @@ Special commands:
 - "flash bang" means make the theme light (bright, white backgrounds)
 
 Examples:
-- "make it purple" → Use updateTheme function with purple accent colors
-- "flash bang" → Use BOTH updateTheme (light theme values) AND suggestTheme(prompt="Quick Sergio is here", action="reset")
-- [User shares image of sunset] → Use updateTheme with warm orange/purple colors, rounded corners matching the soft organic mood
-- [User shares image with "red accents"] → Use updateTheme with colors/style from image BUT use red (#dc2626) for accent colors
-- [User shares Gumroad/playful UI] → Detect thick black borders + hard shadows + rounded corners → Generate soft brutalism theme with borders.primary: "2px solid #000000", shadows.primary: "4px 4px 0px #000000", borderRadius.lg: "0.75rem"
-- "hi" → Respond: "Hello! I can help you customize your theme. Want to try a new color or style?"`;
+- "make it purple" → Call updateTheme with purple accent colors
+- "flash bang" → Call updateTheme (light theme) AND suggestTheme(prompt="Quick Sergio is here", action="reset")
+- [User shares image of sunset] → Call updateTheme with warm orange/purple colors, rounded corners
+- [User shares image with "red accents"] → Call updateTheme with image style + red accents
+- "hi" → Respond conversationally (no function calls needed)`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -241,6 +241,9 @@ export async function POST(request: NextRequest) {
           }
 
           // Process collected function calls after stream completes
+          // Track whether we've already run accessibility check
+          let accessibilityChecked = false;
+
           for (const fc of collectedFunctionCalls) {
             if (fc.name === 'updateTheme') {
               const theme: Theme = {
@@ -251,13 +254,33 @@ export async function POST(request: NextRequest) {
                 borders: fc.args.borders as Theme['borders'],
               };
 
+              // Automatically run accessibility check on the new theme
+              const accessibilityResult = checkAccessibility(theme);
+              const finalTheme = accessibilityResult.adjustedTheme;
+
               const action: ActionResult = {
                 type: 'updateTheme',
                 parameters: theme,
-                result: { success: true, theme },
+                result: { success: true, theme: finalTheme },
               };
 
               sendSSE(controller, encoder, { type: 'action', action });
+
+              // Send accessibility results if adjustments were made
+              if (!accessibilityResult.passed) {
+                const accessibilityAction: ActionResult = {
+                  type: 'checkAccessibility',
+                  parameters: {},
+                  result: {
+                    success: true,
+                    passed: accessibilityResult.passed,
+                    adjustments: accessibilityResult.adjustments,
+                    theme: finalTheme,
+                  },
+                };
+                sendSSE(controller, encoder, { type: 'action', action: accessibilityAction });
+              }
+              accessibilityChecked = true;
             } else if (fc.name === 'suggestTheme') {
               const action: ActionResult = {
                 type: 'suggestTheme',
@@ -270,7 +293,10 @@ export async function POST(request: NextRequest) {
 
               sendSSE(controller, encoder, { type: 'action', action });
             } else if (fc.name === 'checkAccessibility') {
-              // Use the current theme from the request
+              // Skip if already checked (happens automatically after updateTheme)
+              if (accessibilityChecked) continue;
+
+              // Use the current theme from the request for manual accessibility checks
               if (currentTheme) {
                 const result = checkAccessibility(currentTheme);
 

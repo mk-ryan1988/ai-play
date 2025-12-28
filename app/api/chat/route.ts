@@ -98,10 +98,11 @@ CRITICAL - Color Accuracy When User Specifies:
   - Mood and atmosphere
 
 You can call MULTIPLE functions in one response:
-  - When the user requests a LIGHT theme (e.g., "light theme", "flash bang", "bright"), call BOTH:
-    1. updateTheme with the light theme description
-    2. suggestTheme with prompt="Quick Sergio is here", action="reset"
-  - This is an easter egg - only suggest it when applying light themes
+- Accessibility is automatically checked after every theme update - you don't need to call checkAccessibility manually
+- When the user requests a LIGHT theme (e.g., "light theme", "flash bang", "bright"), call BOTH:
+  1. updateTheme with the light theme description
+  2. suggestTheme with prompt="Quick Sergio is here", action="reset"
+- The checkAccessibility function is available if users explicitly ask about accessibility or contrast
 
 When users are just chatting, greeting, asking questions, or thanking you, respond naturally and conversationally.
 
@@ -111,16 +112,10 @@ Special commands:
 - "flash bang" means make the theme light (bright, white backgrounds)
 
 Examples:
-- "make it purple" → Use updateTheme function only
-- "flash bang" → Use BOTH updateTheme("light theme") AND suggestTheme(prompt="Quick Sergio is here", action="reset")
-- "make it light" → Use BOTH updateTheme("light theme") AND suggestTheme(prompt="Quick Sergio is here", action="reset")
-- [User shares image of sunset] → Use updateTheme function with "warm orange and purple sunset theme with soft rounded corners"
-- [User shares image of forest] → Use updateTheme function with "natural green forest theme with organic rounded corners"
-- [User shares futuristic tech UI] → Use updateTheme function with "futuristic dark theme with cyan and yellow accents and sharp angular corners"
-- [User shares Gumroad/playful UI with thick borders] → Use updateTheme with "light theme, pink accent, thick black borders, hard offset shadows, BUT rounded corners (soft brutalism)"
-- "hi" → Respond: "Hello! I can help you customize your theme. Want to try a new color or style?"
-- "thanks" → Respond: "You're welcome! Let me know if you want to try any other themes."
-- "what can you do?" → Respond: "I can change your app's theme! Try asking for different colors, dark/light modes, or styles. You can also share an image and I'll create a theme inspired by it!"`;
+- "make it purple" → Call updateTheme with "purple theme"
+- "flash bang" → Call updateTheme("light theme") AND suggestTheme(prompt="Quick Sergio is here", action="reset")
+- [User shares image of sunset] → Call updateTheme with "warm orange and purple sunset theme"
+- "hi" → Respond conversationally (no function calls needed)`;
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -293,10 +288,35 @@ export async function POST(request: NextRequest) {
 
           // Process collected function calls after stream completes
           // This route uses a second LLM call to generate theme JSON
+          // Track whether we've already run accessibility check
+          let accessibilityChecked = false;
+
           for (const fc of collectedFunctionCalls) {
             if (fc.name === 'updateTheme') {
               const description = fc.args.description as string;
               const result = await executeUpdateTheme(description, currentTheme, model);
+
+              // Automatically run accessibility check if theme was generated
+              let accessibilityAction: ActionResult | null = null;
+              if (result.success && result.theme) {
+                const accessibilityResult = checkAccessibility(result.theme);
+                result.theme = accessibilityResult.adjustedTheme;
+
+                // Prepare accessibility results if adjustments were made
+                if (!accessibilityResult.passed) {
+                  accessibilityAction = {
+                    type: 'checkAccessibility',
+                    parameters: {},
+                    result: {
+                      success: true,
+                      passed: accessibilityResult.passed,
+                      adjustments: accessibilityResult.adjustments,
+                      theme: accessibilityResult.adjustedTheme,
+                    },
+                  };
+                }
+                accessibilityChecked = true;
+              }
 
               const action: ActionResult = {
                 type: 'updateTheme',
@@ -305,6 +325,11 @@ export async function POST(request: NextRequest) {
               };
 
               sendSSE(controller, encoder, { type: 'action', action });
+
+              // Send accessibility results after updateTheme
+              if (accessibilityAction) {
+                sendSSE(controller, encoder, { type: 'action', action: accessibilityAction });
+              }
             } else if (fc.name === 'suggestTheme') {
               const action: ActionResult = {
                 type: 'suggestTheme',
@@ -317,7 +342,10 @@ export async function POST(request: NextRequest) {
 
               sendSSE(controller, encoder, { type: 'action', action });
             } else if (fc.name === 'checkAccessibility') {
-              // Use the current theme from the request
+              // Skip if already checked (happens automatically after updateTheme)
+              if (accessibilityChecked) continue;
+
+              // Use the current theme from the request for manual accessibility checks
               if (currentTheme) {
                 const result = checkAccessibility(currentTheme);
 
